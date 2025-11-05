@@ -32,6 +32,7 @@ function CourseList() {
         <CourseCard
           key={c.courseid}
           course={{
+            courseid: c.courseid || c.id, // Thêm courseid để navigate
             title: c.coursename,
             instructor: c.teacherName || 'Instructor',
             image: c.thumbnailUrl || '/placeholder.svg',
