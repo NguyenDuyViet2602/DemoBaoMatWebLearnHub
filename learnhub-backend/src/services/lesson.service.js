@@ -1,5 +1,5 @@
 // src/services/lesson.service.js
-const { lessons, chapters, courses, users } = require('../models');
+const { lessons, chapters, courses, users } = require("../models");
 
 /**
  * Kiểm tra xem user có phải là chủ sở hữu khóa học hoặc Admin không
@@ -7,10 +7,10 @@ const { lessons, chapters, courses, users } = require('../models');
 const checkCourseOwnership = async (courseId, user) => {
   const course = await courses.findByPk(courseId);
   if (!course) {
-    throw new Error('Không tìm thấy khóa học.');
+    throw new Error("Không tìm thấy khóa học.");
   }
-  if (user.role !== 'Admin' && course.teacherid !== user.id) {
-    throw new Error('Bạn không có quyền chỉnh sửa khóa học này.');
+  if (user.role !== "Admin" && course.teacherid !== user.id) {
+    throw new Error("Bạn không có quyền chỉnh sửa khóa học này.");
   }
   return course;
 };
@@ -18,25 +18,33 @@ const checkCourseOwnership = async (courseId, user) => {
 /**
  * Tạo một bài học mới
  * @param {object} lessonData - Dữ liệu (chapterid, title, videourl, ...)
- * * @param {object} user - Người dùng (từ middleware)
+ * @param {object} user - Người dùng (từ middleware)
  */
 const createLesson = async (lessonData, user) => {
   const { chapterid } = lessonData;
   if (!chapterid) {
-    throw new Error('Vui lòng cung cấp chapterid.');
+    throw new Error("Vui lòng cung cấp chapterid.");
   }
 
-  // Kiểm tra quyền sở hữu thông qua chapter
+  // Kiểm tra chương tồn tại
   const chapter = await chapters.findByPk(chapterid);
   if (!chapter) {
-    throw new Error('Không tìm thấy chương học.');
+    throw new Error("Không tìm thấy chương học.");
   }
+
+  // Kiểm tra quyền
   await checkCourseOwnership(chapter.courseid, user);
+
+  // Tự động gán sortorder nếu chưa có
+  const maxOrder = await lessons.max("sortorder", { where: { chapterid } });
+  const sortorder = lessonData.sortorder || (maxOrder || 0) + 1;
 
   const newLesson = await lessons.create({
     ...lessonData,
+    sortorder,
     courseid: chapter.courseid, // Lấy courseid từ chapter
   });
+
   return newLesson;
 };
 
@@ -47,7 +55,7 @@ const createLesson = async (lessonData, user) => {
 const getLessonsByChapterId = async (chapterId) => {
   return await lessons.findAll({
     where: { chapterid: chapterId },
-    order: [['sortorder', 'ASC']],
+    order: [["sortorder", "ASC"]],
   });
 };
 
@@ -58,7 +66,7 @@ const getLessonsByChapterId = async (chapterId) => {
 const getLessonById = async (lessonId) => {
   const lesson = await lessons.findByPk(lessonId);
   if (!lesson) {
-    throw new Error('Không tìm thấy bài học.');
+    throw new Error("Không tìm thấy bài học.");
   }
   return lesson;
 };
@@ -66,13 +74,13 @@ const getLessonById = async (lessonId) => {
 /**
  * Cập nhật bài học
  * @param {number} lessonId
- * * @param {object} updateData
- * * @param {object} user
+ * @param {object} updateData
+ * @param {object} user
  */
 const updateLesson = async (lessonId, updateData, user) => {
   const lesson = await lessons.findByPk(lessonId);
   if (!lesson) {
-    throw new Error('Không tìm thấy bài học.');
+    throw new Error("Không tìm thấy bài học.");
   }
   await checkCourseOwnership(lesson.courseid, user);
 
@@ -82,17 +90,18 @@ const updateLesson = async (lessonId, updateData, user) => {
 /**
  * Xóa một bài học
  * @param {number} lessonId
- * * @param {object} user
+ * @param {object} user
  */
 const deleteLesson = async (lessonId, user) => {
   const lesson = await lessons.findByPk(lessonId);
   if (!lesson) {
-    throw new Error('Không tìm thấy bài học.');
+    throw new Error("Không tìm thấy bài học.");
   }
+
   await checkCourseOwnership(lesson.courseid, user);
 
   await lesson.destroy();
-  return { message: 'Xóa bài học thành công.' };
+  return { message: "Xóa bài học thành công." };
 };
 
 module.exports = {
