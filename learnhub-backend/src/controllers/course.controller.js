@@ -120,6 +120,31 @@ const handleGetCoursesByCategory = async (req, res, next) => {
   }
 };
 
+// [GET] /api/v1/courses/:id/learn
+const handleGetCourseForLearning = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const studentId = req.user.id; // Lấy từ authMiddleware
+
+    if (req.user.role !== 'Student' && req.user.role !== 'Teacher' && req.user.role !== 'Admin') {
+      return res.status(403).json({
+        message: 'Chỉ có học viên mới được xem nội dung khóa học.',
+      });
+    }
+
+    const courseData = await courseService.getCourseForLearning(Number(id), studentId);
+    res.status(200).json({
+      message: 'Lấy nội dung khóa học thành công.',
+      data: courseData,
+    });
+  } catch (error) {
+    if (error.message.includes('chưa ghi danh') || error.message.includes('Không tìm thấy')) {
+      return res.status(404).json({ message: error.message });
+    }
+    next(error);
+  }
+};
+
 module.exports = {
   handleGetAllCourses,
   handleGetCourseDetailsById,
@@ -127,4 +152,5 @@ module.exports = {
   handleUpdateCourse,
   handleDeleteCourse,
   handleGetCoursesByCategory,
+  handleGetCourseForLearning,
 };

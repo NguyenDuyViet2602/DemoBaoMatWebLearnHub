@@ -81,7 +81,7 @@ const Admin = () => {
             <h2 className="text-xl font-bold text-gray-800">Admin Panel</h2>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden text-gray-500 hover:text-gray-700"
+              className="lg:hidden text-gray-500 hover:text-gray-700 cursor-pointer"
             >
               <FaTimes />
             </button>
@@ -93,7 +93,7 @@ const Admin = () => {
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors cursor-pointer ${
                     activeTab === item.id
                       ? 'bg-emerald-50 text-emerald-700 font-medium'
                       : 'text-gray-700 hover:bg-gray-100'
@@ -114,7 +114,7 @@ const Admin = () => {
         <div className="lg:hidden bg-white border-b p-4 flex items-center gap-4">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="text-gray-700 hover:text-gray-900"
+            className="text-gray-700 hover:text-gray-900 cursor-pointer"
           >
             <FaBars className="text-xl" />
           </button>
@@ -302,7 +302,7 @@ const UserManagement = () => {
         <select
           value={filters.role}
           onChange={(e) => setFilters({ ...filters, role: e.target.value })}
-          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent cursor-pointer"
         >
           <option value="">Tất cả roles</option>
           <option value="Student">Student</option>
@@ -357,7 +357,7 @@ const UserManagement = () => {
                         <select
                           value={user.role}
                           onChange={(e) => handleUpdateRole(user.userid, e.target.value)}
-                          className="text-sm border rounded px-2 py-1 focus:ring-2 focus:ring-emerald-500"
+                          className="text-sm border rounded px-2 py-1 focus:ring-2 focus:ring-emerald-500 cursor-pointer"
                         >
                           <option value="Student">Student</option>
                           <option value="Teacher">Teacher</option>
@@ -370,7 +370,7 @@ const UserManagement = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <button
                           onClick={() => handleDeleteUser(user.userid)}
-                          className="text-red-600 hover:text-red-800"
+                          className="text-red-600 hover:text-red-800 cursor-pointer"
                         >
                           Xóa
                         </button>
@@ -385,7 +385,7 @@ const UserManagement = () => {
               <button
                 onClick={() => setPage(Math.max(1, page - 1))}
                 disabled={page === 1}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 cursor-pointer"
               >
                 Trước
               </button>
@@ -395,7 +395,7 @@ const UserManagement = () => {
               <button
                 onClick={() => setPage(Math.min(totalPages, page + 1))}
                 disabled={page === totalPages}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 cursor-pointer"
               >
                 Sau
               </button>
@@ -502,7 +502,7 @@ const TeacherRequestManagement = () => {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 cursor-pointer"
         >
           <option value="">Tất cả trạng thái</option>
           <option value="Pending">Pending</option>
@@ -563,13 +563,13 @@ const TeacherRequestManagement = () => {
                           <>
                             <button
                               onClick={() => handleApprove(request.requestid)}
-                              className="text-green-600 hover:text-green-800"
+                              className="text-green-600 hover:text-green-800 cursor-pointer"
                             >
                               Duyệt
                             </button>
                             <button
                               onClick={() => handleReject(request.requestid)}
-                              className="text-red-600 hover:text-red-800"
+                              className="text-red-600 hover:text-red-800 cursor-pointer"
                             >
                               Từ chối
                             </button>
@@ -586,7 +586,7 @@ const TeacherRequestManagement = () => {
               <button
                 onClick={() => setPage(Math.max(1, page - 1))}
                 disabled={page === 1}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50"
+                className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 cursor-pointer"
               >
                 Trước
               </button>
@@ -596,7 +596,7 @@ const TeacherRequestManagement = () => {
               <button
                 onClick={() => setPage(Math.min(totalPages, page + 1))}
                 disabled={page === totalPages}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50"
+                className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 cursor-pointer"
               >
                 Sau
               </button>
@@ -707,7 +707,7 @@ const CourseManagement = () => {
         <select
           value={filters.status}
           onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 cursor-pointer"
         >
           <option value="">Tất cả trạng thái</option>
           <option value="Approved">Approved</option>
@@ -765,7 +765,7 @@ const CourseManagement = () => {
                         <select
                           value={course.status}
                           onChange={(e) => handleUpdateStatus(course.courseid, e.target.value)}
-                          className="text-sm border rounded px-2 py-1 focus:ring-2 focus:ring-emerald-500"
+                          className="text-sm border rounded px-2 py-1 focus:ring-2 focus:ring-emerald-500 cursor-pointer"
                         >
                           <option value="Approved">Approved</option>
                           <option value="Pending">Pending</option>
@@ -773,7 +773,7 @@ const CourseManagement = () => {
                         </select>
                         <button
                           onClick={() => handleDelete(course.courseid)}
-                          className="ml-2 text-red-600 hover:text-red-800"
+                          className="ml-2 text-red-600 hover:text-red-800 cursor-pointer"
                         >
                           Xóa
                         </button>
@@ -788,7 +788,7 @@ const CourseManagement = () => {
               <button
                 onClick={() => setPage(Math.max(1, page - 1))}
                 disabled={page === 1}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50"
+                className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 cursor-pointer"
               >
                 Trước
               </button>
@@ -798,7 +798,7 @@ const CourseManagement = () => {
               <button
                 onClick={() => setPage(Math.min(totalPages, page + 1))}
                 disabled={page === totalPages}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50"
+                className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 cursor-pointer"
               >
                 Sau
               </button>
@@ -873,7 +873,7 @@ const OrderManagement = () => {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 cursor-pointer"
         >
           <option value="">Tất cả trạng thái</option>
           <option value="Pending">Pending</option>
@@ -932,7 +932,7 @@ const OrderManagement = () => {
                         <select
                           value={order.status}
                           onChange={(e) => handleUpdateStatus(order.orderid, e.target.value)}
-                          className="text-sm border rounded px-2 py-1 focus:ring-2 focus:ring-emerald-500"
+                          className="text-sm border rounded px-2 py-1 focus:ring-2 focus:ring-emerald-500 cursor-pointer"
                         >
                           <option value="Pending">Pending</option>
                           <option value="Completed">Completed</option>
@@ -943,7 +943,7 @@ const OrderManagement = () => {
                         {new Date(order.createdat).toLocaleDateString('vi-VN')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <button className="text-blue-600 hover:text-blue-800">Chi tiết</button>
+                        <button className="text-blue-600 hover:text-blue-800 cursor-pointer">Chi tiết</button>
                       </td>
                     </tr>
                   ))}
@@ -955,7 +955,7 @@ const OrderManagement = () => {
               <button
                 onClick={() => setPage(Math.max(1, page - 1))}
                 disabled={page === 1}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50"
+                className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 cursor-pointer"
               >
                 Trước
               </button>
@@ -965,7 +965,7 @@ const OrderManagement = () => {
               <button
                 onClick={() => setPage(Math.min(totalPages, page + 1))}
                 disabled={page === totalPages}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50"
+                className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 cursor-pointer"
               >
                 Sau
               </button>
@@ -1066,7 +1066,7 @@ const CategoryManagement = () => {
             setFormData({ categoryname: '', description: '' });
             setShowModal(true);
           }}
-          className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+          className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 cursor-pointer"
         >
           + Thêm danh mục
         </button>
@@ -1104,13 +1104,13 @@ const CategoryManagement = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                       <button
                         onClick={() => handleEdit(category)}
-                        className="text-blue-600 hover:text-blue-800"
+                        className="text-blue-600 hover:text-blue-800 cursor-pointer"
                       >
                         Sửa
                       </button>
                       <button
                         onClick={() => handleDelete(category.categoryid)}
-                        className="text-red-600 hover:text-red-800"
+                        className="text-red-600 hover:text-red-800 cursor-pointer"
                       >
                         Xóa
                       </button>
@@ -1158,13 +1158,13 @@ const CategoryManagement = () => {
                     setEditingCategory(null);
                     setFormData({ categoryname: '', description: '' });
                   }}
-                  className="px-4 py-2 border rounded-lg hover:bg-gray-100"
+                  className="px-4 py-2 border rounded-lg hover:bg-gray-100 cursor-pointer"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 cursor-pointer"
                 >
                   {editingCategory ? 'Cập nhật' : 'Tạo'}
                 </button>
@@ -1275,7 +1275,7 @@ const ReviewManagement = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <button
                           onClick={() => handleDelete(review.reviewid)}
-                          className="text-red-600 hover:text-red-800"
+                          className="text-red-600 hover:text-red-800 cursor-pointer"
                         >
                           Xóa
                         </button>
@@ -1290,7 +1290,7 @@ const ReviewManagement = () => {
               <button
                 onClick={() => setPage(Math.max(1, page - 1))}
                 disabled={page === 1}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50"
+                className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 cursor-pointer"
               >
                 Trước
               </button>
@@ -1300,7 +1300,7 @@ const ReviewManagement = () => {
               <button
                 onClick={() => setPage(Math.min(totalPages, page + 1))}
                 disabled={page === totalPages}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50"
+                className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 cursor-pointer"
               >
                 Sau
               </button>

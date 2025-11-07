@@ -158,7 +158,7 @@ export default function SearchPage() {
               />
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-emerald-600 px-6 py-2 text-white font-semibold hover:bg-emerald-700 transition-colors"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-emerald-600 px-6 py-2 text-white font-semibold hover:bg-emerald-700 transition-colors cursor-pointer"
               >
                 Tìm kiếm
               </button>
@@ -178,7 +178,7 @@ export default function SearchPage() {
                       setSearchParams(newParams);
                       setSearchInput('');
                     }}
-                    className="hover:text-emerald-900"
+                    className="hover:text-emerald-900 cursor-pointer"
                   >
                     ×
                   </button>
@@ -194,7 +194,7 @@ export default function SearchPage() {
                       newParams.delete('categoryName');
                       setSearchParams(newParams);
                     }}
-                    className="hover:text-emerald-900"
+                    className="hover:text-emerald-900 cursor-pointer"
                   >
                     ×
                   </button>
@@ -215,7 +215,7 @@ export default function SearchPage() {
               <div className="space-y-2">
                 <button
                   onClick={() => handleCategoryFilter('all', '')}
-                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors cursor-pointer ${
                     !categoryId
                       ? 'bg-emerald-100 text-emerald-700 font-medium'
                       : 'hover:bg-gray-50'
@@ -227,7 +227,7 @@ export default function SearchPage() {
                   <button
                     key={cat.categoryid}
                     onClick={() => handleCategoryFilter(cat.categoryid, cat.categoryname)}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                    className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors cursor-pointer ${
                       categoryId === String(cat.categoryid)
                         ? 'bg-emerald-100 text-emerald-700 font-medium'
                         : 'hover:bg-gray-50'
@@ -245,7 +245,7 @@ export default function SearchPage() {
               <div className="space-y-2">
                 <button
                   onClick={() => handleSortChange('createdat', 'DESC')}
-                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors cursor-pointer ${
                     sortBy === 'createdat' && sortOrder === 'DESC'
                       ? 'bg-emerald-100 text-emerald-700 font-medium'
                       : 'hover:bg-gray-50'
@@ -255,7 +255,7 @@ export default function SearchPage() {
                 </button>
                 <button
                   onClick={() => handleSortChange('createdat', 'ASC')}
-                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors cursor-pointer ${
                     sortBy === 'createdat' && sortOrder === 'ASC'
                       ? 'bg-emerald-100 text-emerald-700 font-medium'
                       : 'hover:bg-gray-50'
@@ -265,7 +265,7 @@ export default function SearchPage() {
                 </button>
                 <button
                   onClick={() => handleSortChange('coursename', 'ASC')}
-                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors cursor-pointer ${
                     sortBy === 'coursename' && sortOrder === 'ASC'
                       ? 'bg-emerald-100 text-emerald-700 font-medium'
                       : 'hover:bg-gray-50'
@@ -275,7 +275,7 @@ export default function SearchPage() {
                 </button>
                 <button
                   onClick={() => handleSortChange('coursename', 'DESC')}
-                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors cursor-pointer ${
                     sortBy === 'coursename' && sortOrder === 'DESC'
                       ? 'bg-emerald-100 text-emerald-700 font-medium'
                       : 'hover:bg-gray-50'
@@ -285,7 +285,7 @@ export default function SearchPage() {
                 </button>
                 <button
                   onClick={() => handleSortChange('price', 'ASC')}
-                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors cursor-pointer ${
                     sortBy === 'price' && sortOrder === 'ASC'
                       ? 'bg-emerald-100 text-emerald-700 font-medium'
                       : 'hover:bg-gray-50'
@@ -295,7 +295,7 @@ export default function SearchPage() {
                 </button>
                 <button
                   onClick={() => handleSortChange('price', 'DESC')}
-                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors cursor-pointer ${
                     sortBy === 'price' && sortOrder === 'DESC'
                       ? 'bg-emerald-100 text-emerald-700 font-medium'
                       : 'hover:bg-gray-50'
@@ -346,7 +346,7 @@ export default function SearchPage() {
                         <button
                           onClick={() => handlePageChange(page - 1)}
                           disabled={page === 1}
-                          className="px-4 py-2 rounded-md border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                          className="px-4 py-2 rounded-md border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors cursor-pointer"
                         >
                           Trước
                         </button>
@@ -362,7 +362,7 @@ export default function SearchPage() {
                               <button
                                 key={pageNum}
                                 onClick={() => handlePageChange(pageNum)}
-                                className={`px-4 py-2 rounded-md border transition-colors ${
+                                className={`px-4 py-2 rounded-md border transition-colors cursor-pointer ${
                                   pageNum === page
                                     ? 'bg-emerald-600 text-white border-emerald-600'
                                     : 'hover:bg-gray-50'
@@ -379,7 +379,7 @@ export default function SearchPage() {
                         <button
                           onClick={() => handlePageChange(page + 1)}
                           disabled={page === totalPages}
-                          className="px-4 py-2 rounded-md border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                          className="px-4 py-2 rounded-md border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors cursor-pointer"
                         >
                           Sau
                         </button>

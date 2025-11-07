@@ -94,23 +94,23 @@ function Header() {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="container px-6 flex h-16 items-center gap-4">
-        <a href="/" className="flex items-center gap-2 shrink-0">
+        <a href="/" className="flex items-center gap-2 shrink-0 cursor-pointer">
           <span className="grid h-8 w-8 place-items-center rounded-full bg-emerald-600 text-white font-extrabold">m</span>
           <span className="font-bold text-lg tracking-tight">MyCourse.io</span>
         </a>
 
         <nav className="hidden md:flex items-center gap-6 text-sm text-gray-500">
           <div ref={browseRef} className="relative">
-            <button onClick={() => setOpenBrowse((v) => !v)} className="hover:text-gray-900 transition-colors flex items-center gap-1">
+            <button onClick={() => setOpenBrowse((v) => !v)} className="hover:text-gray-900 transition-colors flex items-center gap-1 cursor-pointer">
               Duyệt
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4"><path fill="currentColor" d="M7 10l5 5 5-5z" /></svg>
             </button>
             {openBrowse && (
               <div className="absolute left-0 mt-2 w-48 rounded-lg border bg-white p-2 shadow-lg z-50">
-                <a className="block rounded-md px-3 py-2 text-sm hover:bg-gray-50" href="#">Lập trình</a>
-                <a className="block rounded-md px-3 py-2 text-sm hover:bg-gray-50" href="#">Thiết kế</a>
-                <a className="block rounded-md px-3 py-2 text-sm hover:bg-gray-50" href="#">Kinh doanh</a>
-                <a className="block rounded-md px-3 py-2 text-sm hover:bg-gray-50" href="#">Marketing</a>
+                <a className="block rounded-md px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer" href="#">Lập trình</a>
+                <a className="block rounded-md px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer" href="#">Thiết kế</a>
+                <a className="block rounded-md px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer" href="#">Kinh doanh</a>
+                <a className="block rounded-md px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer" href="#">Marketing</a>
               </div>
             )}
           </div>
@@ -127,7 +127,7 @@ function Header() {
           {isLoggedIn && user && user.role !== 'Teacher' && (
             <button
               onClick={handleBecomeInstructor}
-              className="hidden md:flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-full transition-colors"
+              className="hidden md:flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-full transition-colors cursor-pointer"
             >
               Trở thành Giảng viên
             </button>
@@ -139,7 +139,7 @@ function Header() {
             {isLoggedIn && user ? (
               <button
                 onClick={() => setOpenAccount((v) => !v)}
-                className="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
               >
                 {user.profilepicture ? (
                   <img
@@ -174,7 +174,7 @@ function Header() {
                         setShowLoginPopup(true);
                         setOpenAccount(false);
                       }}
-                      className="block w-full text-left rounded-md px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
+                      className="block w-full text-left rounded-md px-4 py-3 text-sm hover:bg-gray-50 transition-colors cursor-pointer"
                     >
                       Đăng nhập
                     </button>
@@ -183,7 +183,7 @@ function Header() {
                         setShowSignupPopup(true);
                         setOpenAccount(false);
                       }}
-                      className="block w-full text-left rounded-md px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
+                      className="block w-full text-left rounded-md px-4 py-3 text-sm hover:bg-gray-50 transition-colors cursor-pointer"
                     >
                       Đăng ký
                     </button>
@@ -200,10 +200,10 @@ function Header() {
                     <div className="py-2">
                       <button
                         onClick={() => {
-                          navigate('/profile');
+                          navigate('/my-courses');
                           setOpenAccount(false);
                         }}
-                        className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors cursor-pointer"
                       >
                         <FaUser className="text-gray-400" />
                         <span>Khóa học của tôi</span>
@@ -213,17 +213,17 @@ function Header() {
                           // TODO: Navigate to cart
                           setOpenAccount(false);
                         }}
-                        className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors cursor-pointer"
                       >
                         <FaShoppingCart className="text-gray-400" />
                         <span>Giỏ hàng của tôi</span>
                       </button>
                       <button
                         onClick={() => {
-                          // TODO: Navigate to wishlist
+                          navigate('/my-courses?tab=wishlist');
                           setOpenAccount(false);
                         }}
-                        className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors cursor-pointer"
                       >
                         <FaHeart className="text-gray-400" />
                         <span>Wishlist</span>
@@ -233,7 +233,7 @@ function Header() {
                           // TODO: Navigate to notifications
                           setOpenAccount(false);
                         }}
-                        className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors cursor-pointer"
                       >
                         <FaBell className="text-gray-400" />
                         <span>Notifications</span>
@@ -243,7 +243,7 @@ function Header() {
                           navigate('/profile');
                           setOpenAccount(false);
                         }}
-                        className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors cursor-pointer"
                       >
                         <FaCog className="text-gray-400" />
                         <span>Account Settings</span>
@@ -251,7 +251,7 @@ function Header() {
                       <div className="border-t my-1"></div>
                       <button
                         onClick={handleLogout}
-                        className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm hover:bg-red-50 text-red-600 transition-colors"
+                        className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm hover:bg-red-50 text-red-600 transition-colors cursor-pointer"
                       >
                         <FaSignOutAlt className="text-red-400" />
                         <span>Logout</span>
@@ -325,7 +325,7 @@ function SearchInput({ className }) {
 
 function IconButton({ children, ariaLabel, onClick }) {
   return (
-    <button onClick={onClick} aria-label={ariaLabel} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+    <button onClick={onClick} aria-label={ariaLabel} className="p-2 rounded-full hover:bg-gray-100 transition-colors cursor-pointer">
       {children}
     </button>
   );

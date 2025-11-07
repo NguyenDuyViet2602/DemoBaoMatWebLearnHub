@@ -33,9 +33,19 @@ const handleGetChaptersByCourseId = async (req, res, next) => {
     const chapterList = await chapterService.getChaptersByCourseId(
       Number(courseId)
     );
+    // Convert Sequelize instances to plain objects
+    const plainChapters = chapterList.map(chapter => {
+      const plain = chapter.toJSON ? chapter.toJSON() : chapter;
+      if (plain.lessons) {
+        plain.lessons = plain.lessons.map(lesson => 
+          lesson.toJSON ? lesson.toJSON() : lesson
+        );
+      }
+      return plain;
+    });
     res
       .status(200)
-      .json({ message: "Lấy danh sách chương thành công.", data: chapterList });
+      .json({ message: "Lấy danh sách chương thành công.", data: plainChapters });
   } catch (error) {
     next(error);
   }

@@ -298,10 +298,10 @@ function CarouselKitaniStudio({ items }) {
           <p className="text-sm text-muted-foreground">Chúng tôi biết những điều tốt nhất cho bạn. Lựa chọn hàng đầu cho bạn.</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => scrollPrev(320)} className="rounded-full border p-2 hover:bg-gray-50" aria-label="Trước">
+          <button onClick={() => scrollPrev(320)} className="rounded-full border p-2 hover:bg-gray-50 cursor-pointer" aria-label="Trước">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5"><path fill="currentColor" d="M15 6l-6 6 6 6"/></svg>
           </button>
-          <button onClick={() => scrollNext(320)} className="rounded-full border p-2 hover:bg-gray-50" aria-label="Sau">
+          <button onClick={() => scrollNext(320)} className="rounded-full border p-2 hover:bg-gray-50 cursor-pointer" aria-label="Sau">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5"><path fill="currentColor" d="M9 6l6 6-6 6"/></svg>
           </button>
         </div>
@@ -461,10 +461,10 @@ function CarouselInterest() {
           <p className="text-sm text-muted-foreground">Chúng tôi biết những điều tốt nhất cho bạn. Lựa chọn hàng đầu cho bạn.</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => scrollPrev(320)} className="rounded-full border p-2 hover:bg-gray-50" aria-label="Trước">
+          <button onClick={() => scrollPrev(320)} className="rounded-full border p-2 hover:bg-gray-50 cursor-pointer" aria-label="Trước">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5"><path fill="currentColor" d="M15 6l-6 6 6 6"/></svg>
           </button>
-          <button onClick={() => scrollNext(320)} className="rounded-full border p-2 hover:bg-gray-50" aria-label="Sau">
+          <button onClick={() => scrollNext(320)} className="rounded-full border p-2 hover:bg-gray-50 cursor-pointer" aria-label="Sau">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5"><path fill="currentColor" d="M9 6l6 6-6 6"/></svg>
           </button>
         </div>

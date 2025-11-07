@@ -14,6 +14,11 @@ import {
   FaTrash,
   FaCheck,
   FaTimesCircle,
+  FaFolderOpen,
+  FaChevronDown,
+  FaChevronRight,
+  FaVideo,
+  FaQuestionCircle,
 } from 'react-icons/fa';
 
 const Teacher = () => {
@@ -43,6 +48,7 @@ const Teacher = () => {
   const menuItems = [
     { id: 'dashboard', label: 'Tổng quan', icon: FaHome },
     { id: 'courses', label: 'Khóa học của tôi', icon: FaBook },
+    { id: 'content', label: 'Nội dung khóa học', icon: FaFolderOpen },
     { id: 'students', label: 'Học viên', icon: FaUsers },
     { id: 'submissions', label: 'Bài tập chờ chấm', icon: FaClipboardList },
     { id: 'analytics', label: 'Thống kê', icon: FaChartLine },
@@ -54,6 +60,8 @@ const Teacher = () => {
         return <DashboardStats stats={stats} loading={loading} />;
       case 'courses':
         return <MyCourses onRefresh={fetchDashboardStats} />;
+      case 'content':
+        return <CourseContentManagement />;
       case 'students':
         return <MyStudents />;
       case 'submissions':
@@ -65,7 +73,7 @@ const Teacher = () => {
     }
   };
 
-  return (
+    return (
     <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
       <div
@@ -78,7 +86,7 @@ const Teacher = () => {
             <h2 className="text-xl font-bold text-gray-800">Giảng viên</h2>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden text-gray-500 hover:text-gray-700"
+              className="lg:hidden text-gray-500 hover:text-gray-700 cursor-pointer"
             >
               <FaTimes />
             </button>
@@ -90,7 +98,7 @@ const Teacher = () => {
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors cursor-pointer ${
                     activeTab === item.id
                       ? 'bg-emerald-50 text-emerald-700 font-medium'
                       : 'text-gray-700 hover:bg-gray-100'
@@ -111,7 +119,7 @@ const Teacher = () => {
         <div className="lg:hidden bg-white border-b p-4 flex items-center gap-4">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="text-gray-700 hover:text-gray-900"
+            className="text-gray-700 hover:text-gray-900 cursor-pointer"
           >
             <FaBars className="text-xl" />
           </button>
@@ -378,7 +386,7 @@ const MyCourses = ({ onRefresh }) => {
             });
             setShowModal(true);
           }}
-          className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2"
+          className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2 cursor-pointer"
         >
           <FaPlus /> Tạo khóa học mới
         </button>
@@ -396,7 +404,7 @@ const MyCourses = ({ onRefresh }) => {
         <select
           value={filters.status}
           onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 cursor-pointer"
         >
           <option value="">Tất cả trạng thái</option>
           <option value="Approved">Approved</option>
@@ -461,13 +469,13 @@ const MyCourses = ({ onRefresh }) => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                         <button
                           onClick={() => handleEdit(course)}
-                          className="text-blue-600 hover:text-blue-800"
+                          className="text-blue-600 hover:text-blue-800 cursor-pointer"
                         >
                           <FaEdit />
                         </button>
                         <button
                           onClick={() => handleDelete(course.courseid)}
-                          className="text-red-600 hover:text-red-800"
+                          className="text-red-600 hover:text-red-800 cursor-pointer"
                         >
                           <FaTrash />
                         </button>
@@ -482,7 +490,7 @@ const MyCourses = ({ onRefresh }) => {
               <button
                 onClick={() => setPage(Math.max(1, page - 1))}
                 disabled={page === 1}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50"
+                className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 cursor-pointer"
               >
                 Trước
               </button>
@@ -492,7 +500,7 @@ const MyCourses = ({ onRefresh }) => {
               <button
                 onClick={() => setPage(Math.min(totalPages, page + 1))}
                 disabled={page === totalPages}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50"
+                className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 cursor-pointer"
               >
                 Sau
               </button>
@@ -545,7 +553,7 @@ const MyCourses = ({ onRefresh }) => {
                   <select
                     value={formData.categoryid}
                     onChange={(e) => setFormData({ ...formData, categoryid: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 cursor-pointer"
                   >
                     <option value="">Chọn danh mục</option>
                     {categories.map((cat) => (
@@ -562,7 +570,7 @@ const MyCourses = ({ onRefresh }) => {
                   <select
                     value={formData.level}
                     onChange={(e) => setFormData({ ...formData, level: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 cursor-pointer"
                   >
                     <option value="">Chọn cấp độ</option>
                     <option value="Beginner">Beginner</option>
@@ -608,13 +616,13 @@ const MyCourses = ({ onRefresh }) => {
                     setShowModal(false);
                     setEditingCourse(null);
                   }}
-                  className="px-4 py-2 border rounded-lg hover:bg-gray-100"
+                  className="px-4 py-2 border rounded-lg hover:bg-gray-100 cursor-pointer"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 cursor-pointer"
                 >
                   {editingCourse ? 'Cập nhật' : 'Tạo'}
                 </button>
@@ -695,7 +703,7 @@ const MyStudents = () => {
         <select
           value={filters.courseId}
           onChange={(e) => setFilters({ ...filters, courseId: e.target.value })}
-          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 cursor-pointer"
         >
           <option value="">Tất cả khóa học</option>
           {courses.map((course) => (
@@ -763,7 +771,7 @@ const MyStudents = () => {
               <button
                 onClick={() => setPage(Math.max(1, page - 1))}
                 disabled={page === 1}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50"
+                className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 cursor-pointer"
               >
                 Trước
               </button>
@@ -773,7 +781,7 @@ const MyStudents = () => {
               <button
                 onClick={() => setPage(Math.min(totalPages, page + 1))}
                 disabled={page === totalPages}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50"
+                className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 cursor-pointer"
               >
                 Sau
               </button>
@@ -901,7 +909,7 @@ const PendingSubmissions = ({ onRefresh }) => {
                             setGradeData({ grade: '', feedback: '' });
                             setShowGradeModal(true);
                           }}
-                          className="text-emerald-600 hover:text-emerald-800"
+                          className="text-emerald-600 hover:text-emerald-800 cursor-pointer"
                         >
                           Chấm điểm
                         </button>
@@ -916,7 +924,7 @@ const PendingSubmissions = ({ onRefresh }) => {
               <button
                 onClick={() => setPage(Math.max(1, page - 1))}
                 disabled={page === 1}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50"
+                className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 cursor-pointer"
               >
                 Trước
               </button>
@@ -926,7 +934,7 @@ const PendingSubmissions = ({ onRefresh }) => {
               <button
                 onClick={() => setPage(Math.min(totalPages, page + 1))}
                 disabled={page === totalPages}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50"
+                className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 cursor-pointer"
               >
                 Sau
               </button>
@@ -978,13 +986,13 @@ const PendingSubmissions = ({ onRefresh }) => {
                     setSelectedSubmission(null);
                     setGradeData({ grade: '', feedback: '' });
                   }}
-                  className="px-4 py-2 border rounded-lg hover:bg-gray-100"
+                  className="px-4 py-2 border rounded-lg hover:bg-gray-100 cursor-pointer"
                 >
                   Hủy
                 </button>
                 <button
                   onClick={handleGrade}
-                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 cursor-pointer"
                 >
                   Lưu điểm
                 </button>
@@ -1059,7 +1067,7 @@ const Analytics = () => {
                   setAnalytics(null);
                 }
               }}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 cursor-pointer"
             >
               <option value="">Chọn khóa học...</option>
               {courses.map((course) => (
@@ -1138,6 +1146,1060 @@ const Analytics = () => {
             </div>
           )}
         </div>
+      </div>
+        </div>
+    );
+};
+
+// Course Content Management Component
+const CourseContentManagement = () => {
+  const [courses, setCourses] = useState([]);
+  const [selectedCourseId, setSelectedCourseId] = useState('');
+  const [chapters, setChapters] = useState([]);
+  const [expandedChapters, setExpandedChapters] = useState(new Set());
+  const [lessons, setLessons] = useState({}); // { chapterId: [lessons] }
+  const [quizzes, setQuizzes] = useState({}); // { lessonId: [quizzes] }
+  const [loading, setLoading] = useState(false);
+  const [showChapterModal, setShowChapterModal] = useState(false);
+  const [showLessonModal, setShowLessonModal] = useState(false);
+  const [showQuizModal, setShowQuizModal] = useState(false);
+  const [editingChapter, setEditingChapter] = useState(null);
+  const [editingLesson, setEditingLesson] = useState(null);
+  const [editingQuiz, setEditingQuiz] = useState(null);
+  const [selectedChapterId, setSelectedChapterId] = useState(null);
+  const [selectedLessonId, setSelectedLessonId] = useState(null);
+  const [chapterForm, setChapterForm] = useState({ title: '', description: '', sortorder: 0 });
+  const [lessonForm, setLessonForm] = useState({ title: '', content: '', videourl: '', sortorder: 0 });
+  const [quizForm, setQuizForm] = useState({ title: '', timelimit: 30, maxattempts: 1, showanswersaftersubmission: false });
+
+  useEffect(() => {
+    fetchCourses();
+  }, []);
+
+  useEffect(() => {
+    if (selectedCourseId) {
+      fetchChapters();
+    }
+  }, [selectedCourseId]);
+
+  const fetchCourses = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://localhost:8080/api/v1/teacher/courses?limit=100', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCourses(response.data.data || []);
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+    }
+  };
+
+  const fetchChapters = async () => {
+    if (!selectedCourseId) return;
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await axios.get(
+        `http://localhost:8080/api/v1/chapters/course/${selectedCourseId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const chaptersData = response.data.data || [];
+      setChapters(chaptersData);
+      
+      // Process lessons from include or fetch separately
+      const lessonsMap = {};
+      for (const chapter of chaptersData) {
+        // Use lessons from include if available, otherwise fetch separately
+        if (chapter.lessons && Array.isArray(chapter.lessons) && chapter.lessons.length > 0) {
+          lessonsMap[chapter.chapterid] = chapter.lessons;
+          // Still fetch quizzes for each lesson
+          for (const lesson of chapter.lessons) {
+            if (lesson.lessonid) {
+              fetchQuizzes(lesson.lessonid);
+            }
+          }
+        } else {
+          // Fetch lessons separately if not included (or empty array)
+          // Set empty array first to avoid undefined
+          lessonsMap[chapter.chapterid] = [];
+          fetchLessons(chapter.chapterid);
+        }
+      }
+      // Update lessons state with included lessons
+      setLessons((prev) => ({ ...prev, ...lessonsMap }));
+    } catch (error) {
+      console.error('Error fetching chapters:', error);
+      alert('Lỗi khi tải danh sách chương: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchLessons = async (chapterId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(
+        `http://localhost:8080/api/v1/lessons/chapter/${chapterId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const lessonsData = response.data.data || [];
+      setLessons((prev) => ({ ...prev, [chapterId]: lessonsData }));
+      
+      // Fetch quizzes for each lesson
+      for (const lesson of lessonsData) {
+        if (lesson.lessonid) {
+          fetchQuizzes(lesson.lessonid);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching lessons:', error);
+      // Don't show alert for 404 - chapter might not have lessons yet
+      if (error.response?.status !== 404) {
+        console.error('Error fetching lessons for chapter', chapterId, error);
+      }
+    }
+  };
+
+  const fetchQuizzes = async (lessonId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(
+        `http://localhost:8080/api/v1/quizzes/lesson/${lessonId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const quizzesData = response.data.data || [];
+      setQuizzes((prev) => ({ ...prev, [lessonId]: quizzesData }));
+    } catch (error) {
+      console.error('Error fetching quizzes:', error);
+    }
+  };
+
+  const toggleChapter = (chapterId) => {
+    const newExpanded = new Set(expandedChapters);
+    if (newExpanded.has(chapterId)) {
+      newExpanded.delete(chapterId);
+    } else {
+      newExpanded.add(chapterId);
+    }
+    setExpandedChapters(newExpanded);
+  };
+
+  const handleCreateChapter = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        'http://localhost:8080/api/v1/chapters',
+        {
+          courseId: parseInt(selectedCourseId),
+          ...chapterForm,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      alert('Tạo chương thành công!');
+      setShowChapterModal(false);
+      setChapterForm({ title: '', description: '', sortorder: 0 });
+      fetchChapters();
+    } catch (error) {
+      alert('Lỗi: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const handleUpdateChapter = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `http://localhost:8080/api/v1/chapters/${editingChapter.chapterid}`,
+        chapterForm,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      alert('Cập nhật chương thành công!');
+      setShowChapterModal(false);
+      setEditingChapter(null);
+      setChapterForm({ title: '', description: '', sortorder: 0 });
+      fetchChapters();
+    } catch (error) {
+      alert('Lỗi: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const handleDeleteChapter = async (chapterId) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa chương này? Tất cả bài học trong chương sẽ bị xóa.')) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:8080/api/v1/chapters/${chapterId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      alert('Xóa chương thành công!');
+      fetchChapters();
+    } catch (error) {
+      alert('Lỗi: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const handleCreateLesson = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        'http://localhost:8080/api/v1/lessons',
+        {
+          chapterid: parseInt(selectedChapterId),
+          courseid: parseInt(selectedCourseId),
+          ...lessonForm,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      alert('Tạo bài học thành công!');
+      setShowLessonModal(false);
+      setSelectedChapterId(null);
+      setLessonForm({ title: '', content: '', videourl: '', sortorder: 0 });
+      fetchLessons(parseInt(selectedChapterId));
+    } catch (error) {
+      alert('Lỗi: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const handleUpdateLesson = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `http://localhost:8080/api/v1/lessons/${editingLesson.lessonid}`,
+        lessonForm,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      alert('Cập nhật bài học thành công!');
+      setShowLessonModal(false);
+      setEditingLesson(null);
+      setLessonForm({ title: '', content: '', videourl: '', sortorder: 0 });
+      fetchLessons(editingLesson.chapterid);
+    } catch (error) {
+      alert('Lỗi: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const handleDeleteLesson = async (lessonId, chapterId) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa bài học này?')) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:8080/api/v1/lessons/${lessonId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      alert('Xóa bài học thành công!');
+      fetchLessons(chapterId);
+    } catch (error) {
+      alert('Lỗi: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  return (
+    <div>
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">Quản lý nội dung khóa học</h1>
+
+      {/* Course Selector */}
+      <div className="bg-white p-4 rounded-lg shadow-md mb-6">
+        <label className="block text-sm font-medium mb-2">Chọn khóa học</label>
+        <select
+          value={selectedCourseId}
+          onChange={(e) => {
+            setSelectedCourseId(e.target.value);
+            setChapters([]);
+            setLessons({});
+            setExpandedChapters(new Set());
+          }}
+          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+        >
+          <option value="">-- Chọn khóa học --</option>
+          {courses.map((course) => (
+            <option key={course.courseid} value={course.courseid}>
+              {course.coursename}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {!selectedCourseId && (
+        <div className="bg-white rounded-lg shadow-md p-12 text-center text-gray-500">
+          Vui lòng chọn khóa học để quản lý nội dung
+        </div>
+      )}
+
+      {selectedCourseId && (
+        <div className="space-y-4">
+          {/* Add Chapter Button */}
+          <div className="flex justify-end">
+            <button
+              onClick={() => {
+                setEditingChapter(null);
+                setChapterForm({ title: '', description: '', sortorder: chapters.length + 1 });
+                setShowChapterModal(true);
+              }}
+              className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2 cursor-pointer"
+            >
+              <FaPlus /> Thêm chương mới
+            </button>
+          </div>
+
+          {/* Chapters List */}
+          {loading ? (
+            <div className="text-center py-12">Đang tải...</div>
+          ) : chapters.length === 0 ? (
+            <div className="bg-white rounded-lg shadow-md p-12 text-center text-gray-500">
+              Chưa có chương nào. Hãy thêm chương đầu tiên!
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {chapters
+                .sort((a, b) => (a.sortorder || 0) - (b.sortorder || 0))
+                .map((chapter) => (
+                  <div key={chapter.chapterid} className="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div className="p-4 flex items-center justify-between border-b">
+                      <div className="flex items-center gap-3 flex-1">
+                        <button
+                          onClick={() => toggleChapter(chapter.chapterid)}
+                          className="text-gray-500 hover:text-gray-700 cursor-pointer"
+                        >
+                          {expandedChapters.has(chapter.chapterid) ? (
+                            <FaChevronDown />
+                          ) : (
+                            <FaChevronRight />
+                          )}
+                        </button>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-lg">{chapter.title}</h3>
+                          {chapter.description && (
+                            <p className="text-sm text-gray-500 mt-1">{chapter.description}</p>
+                          )}
+                          <p className="text-xs text-gray-400 mt-1">
+                            Thứ tự: {chapter.sortorder || 0} | Số bài học: {lessons[chapter.chapterid]?.length || 0}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            setSelectedChapterId(chapter.chapterid);
+                            setLessonForm({ title: '', content: '', videourl: '', sortorder: (lessons[chapter.chapterid]?.length || 0) + 1 });
+                            setShowLessonModal(true);
+                          }}
+                          className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 flex items-center gap-1 cursor-pointer"
+                        >
+                          <FaPlus className="text-xs" /> Bài học
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEditingChapter(chapter);
+                            setChapterForm({
+                              title: chapter.title,
+                              description: chapter.description || '',
+                              sortorder: chapter.sortorder || 0,
+                            });
+                            setShowChapterModal(true);
+                          }}
+                          className="px-3 py-1 text-sm text-blue-600 hover:text-blue-800 cursor-pointer"
+                        >
+                          <FaEdit />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteChapter(chapter.chapterid)}
+                          className="px-3 py-1 text-sm text-red-600 hover:text-red-800 cursor-pointer"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Lessons List */}
+                    {expandedChapters.has(chapter.chapterid) && (
+                      <div className="bg-gray-50 p-4 space-y-2">
+                        {lessons[chapter.chapterid]?.length > 0 ? (
+                          lessons[chapter.chapterid]
+                            .sort((a, b) => (a.sortorder || 0) - (b.sortorder || 0))
+                            .map((lesson) => (
+                              <div
+                                key={lesson.lessonid}
+                                className="bg-white rounded border p-3 flex items-center justify-between"
+                              >
+                                <div className="flex items-center gap-3 flex-1">
+                                  <FaVideo className="text-gray-400" />
+                                  <div className="flex-1">
+                                    <h4 className="font-medium">{lesson.title}</h4>
+                                    {lesson.videourl && (
+                                      <p className="text-xs text-gray-500 truncate max-w-md">
+                                        Video: {lesson.videourl}
+                                      </p>
+                                    )}
+                                    <p className="text-xs text-gray-400">
+                                      Thứ tự: {lesson.sortorder || 0} | Quiz: {quizzes[lesson.lessonid]?.length || 0}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => {
+                                      setSelectedLessonId(lesson.lessonid);
+                                      setShowQuizModal(true);
+                                    }}
+                                    className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200 flex items-center gap-1 cursor-pointer"
+                                  >
+                                    <FaQuestionCircle className="text-xs" /> Quiz ({quizzes[lesson.lessonid]?.length || 0})
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setEditingLesson(lesson);
+                                      setLessonForm({
+                                        title: lesson.title,
+                                        content: lesson.content || '',
+                                        videourl: lesson.videourl || '',
+                                        sortorder: lesson.sortorder || 0,
+                                      });
+                                      setShowLessonModal(true);
+                                    }}
+                                    className="px-2 py-1 text-xs text-blue-600 hover:text-blue-800 cursor-pointer"
+                                  >
+                                    <FaEdit />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteLesson(lesson.lessonid, chapter.chapterid)}
+                                    className="px-2 py-1 text-xs text-red-600 hover:text-red-800 cursor-pointer"
+                                  >
+                                    <FaTrash />
+                                  </button>
+                                </div>
+                              </div>
+                            ))
+                        ) : (
+                          <div className="text-center text-gray-400 text-sm py-4">
+                            Chưa có bài học nào
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Chapter Modal */}
+      {showChapterModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">
+              {editingChapter ? 'Sửa chương' : 'Thêm chương mới'}
+            </h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                editingChapter ? handleUpdateChapter() : handleCreateChapter();
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-sm font-medium mb-2">Tên chương *</label>
+                <input
+                  type="text"
+                  value={chapterForm.title}
+                  onChange={(e) => setChapterForm({ ...chapterForm, title: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Mô tả</label>
+                <textarea
+                  value={chapterForm.description}
+                  onChange={(e) => setChapterForm({ ...chapterForm, description: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  rows="3"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Thứ tự</label>
+                <input
+                  type="number"
+                  value={chapterForm.sortorder}
+                  onChange={(e) => setChapterForm({ ...chapterForm, sortorder: parseInt(e.target.value) || 0 })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  min="0"
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowChapterModal(false);
+                    setEditingChapter(null);
+                    setChapterForm({ title: '', description: '', sortorder: 0 });
+                  }}
+                  className="px-4 py-2 border rounded-lg hover:bg-gray-100 cursor-pointer"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 cursor-pointer"
+                >
+                  {editingChapter ? 'Cập nhật' : 'Tạo'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Lesson Modal */}
+      {showLessonModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4">
+              {editingLesson ? 'Sửa bài học' : 'Thêm bài học mới'}
+            </h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                editingLesson ? handleUpdateLesson() : handleCreateLesson();
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-sm font-medium mb-2">Tên bài học *</label>
+                <input
+                  type="text"
+                  value={lessonForm.title}
+                  onChange={(e) => setLessonForm({ ...lessonForm, title: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Nội dung</label>
+                <textarea
+                  value={lessonForm.content}
+                  onChange={(e) => setLessonForm({ ...lessonForm, content: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  rows="6"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Video URL</label>
+                <input
+                  type="text"
+                  value={lessonForm.videourl}
+                  onChange={(e) => setLessonForm({ ...lessonForm, videourl: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  placeholder="https://..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Thứ tự</label>
+                <input
+                  type="number"
+                  value={lessonForm.sortorder}
+                  onChange={(e) => setLessonForm({ ...lessonForm, sortorder: parseInt(e.target.value) || 0 })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  min="0"
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowLessonModal(false);
+                    setEditingLesson(null);
+                    setSelectedChapterId(null);
+                    setLessonForm({ title: '', content: '', videourl: '', sortorder: 0 });
+                  }}
+                  className="px-4 py-2 border rounded-lg hover:bg-gray-100 cursor-pointer"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 cursor-pointer"
+                >
+                  {editingLesson ? 'Cập nhật' : 'Tạo'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Quiz Management Modal */}
+      {showQuizModal && selectedLessonId && (
+        <QuizManagementModal
+          lessonId={selectedLessonId}
+          quizzes={quizzes[selectedLessonId] || []}
+          onClose={() => {
+            setShowQuizModal(false);
+            setSelectedLessonId(null);
+          }}
+          onRefresh={() => fetchQuizzes(selectedLessonId)}
+        />
+      )}
+        </div>
+    );
+};
+
+// Quiz Management Modal Component
+const QuizManagementModal = ({ lessonId, quizzes, onClose, onRefresh }) => {
+  const [showQuizForm, setShowQuizForm] = useState(false);
+  const [showQuestionForm, setShowQuestionForm] = useState(false);
+  const [selectedQuiz, setSelectedQuiz] = useState(null);
+  const [quizForm, setQuizForm] = useState({
+    title: '',
+    timelimit: 30,
+    maxattempts: 1,
+    showanswersaftersubmission: false,
+  });
+  const [questionForm, setQuestionForm] = useState({
+    questiontext: '',
+    explanation: '',
+    options: [{ optiontext: '', iscorrect: false }],
+  });
+  const [quizDetails, setQuizDetails] = useState({}); // { quizId: { questions: [] } }
+
+  const handleCreateQuiz = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        'http://localhost:8080/api/v1/quizzes',
+        {
+          lessonid: parseInt(lessonId),
+          ...quizForm,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      alert('Tạo quiz thành công!');
+      setShowQuizForm(false);
+      setQuizForm({ title: '', timelimit: 30, maxattempts: 1, showanswersaftersubmission: false });
+      onRefresh();
+    } catch (error) {
+      alert('Lỗi: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const handleDeleteQuiz = async (quizId) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa quiz này?')) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:8080/api/v1/quizzes/${quizId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      alert('Xóa quiz thành công!');
+      onRefresh();
+    } catch (error) {
+      alert('Lỗi: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const fetchQuizDetails = async (quizId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`http://localhost:8080/api/v1/quizzes/${quizId}/teacher`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setQuizDetails((prev) => ({
+        ...prev,
+        [quizId]: response.data.data,
+      }));
+    } catch (error) {
+      console.error('Error fetching quiz details:', error);
+    }
+  };
+
+  const handleCreateQuestion = async () => {
+    if (!selectedQuiz) return;
+    if (!questionForm.questiontext || questionForm.options.length < 2) {
+      alert('Vui lòng nhập câu hỏi và ít nhất 2 đáp án');
+      return;
+    }
+
+    const hasCorrectAnswer = questionForm.options.some((opt) => opt.iscorrect);
+    if (!hasCorrectAnswer) {
+      alert('Vui lòng chọn ít nhất một đáp án đúng');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `http://localhost:8080/api/v1/quizzes/${selectedQuiz.quizid}/questions`,
+        questionForm,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      alert('Tạo câu hỏi thành công!');
+      setShowQuestionForm(false);
+      setQuestionForm({
+        questiontext: '',
+        explanation: '',
+        options: [{ optiontext: '', iscorrect: false }],
+      });
+      fetchQuizDetails(selectedQuiz.quizid);
+    } catch (error) {
+      alert('Lỗi: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const handleDeleteQuestion = async (questionId) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa câu hỏi này?')) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:8080/api/v1/quizzes/questions/${questionId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      alert('Xóa câu hỏi thành công!');
+      if (selectedQuiz) {
+        fetchQuizDetails(selectedQuiz.quizid);
+      }
+    } catch (error) {
+      alert('Lỗi: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const addOption = () => {
+    setQuestionForm({
+      ...questionForm,
+      options: [...questionForm.options, { optiontext: '', iscorrect: false }],
+    });
+  };
+
+  const removeOption = (index) => {
+    const newOptions = questionForm.options.filter((_, i) => i !== index);
+    setQuestionForm({ ...questionForm, options: newOptions });
+  };
+
+  const updateOption = (index, field, value) => {
+    const newOptions = [...questionForm.options];
+    newOptions[index] = { ...newOptions[index], [field]: value };
+    setQuestionForm({ ...questionForm, options: newOptions });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold">Quản lý Quiz</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 text-2xl cursor-pointer"
+          >
+            <FaTimes />
+          </button>
+        </div>
+
+        {/* Quiz List */}
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Danh sách Quiz</h3>
+            <button
+              onClick={() => {
+                setSelectedQuiz(null);
+                setQuizForm({ title: '', timelimit: 30, maxattempts: 1, showanswersaftersubmission: false });
+                setShowQuizForm(true);
+              }}
+              className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2 cursor-pointer"
+            >
+              <FaPlus /> Tạo Quiz mới
+            </button>
+          </div>
+
+          {quizzes.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">Chưa có quiz nào</div>
+          ) : (
+            <div className="space-y-2">
+              {quizzes.map((quiz) => (
+                <div
+                  key={quiz.quizid}
+                  className="border rounded-lg p-4 flex items-center justify-between"
+                >
+                  <div className="flex-1">
+                    <h4 className="font-medium">{quiz.title}</h4>
+                    <p className="text-sm text-gray-500">
+                      Thời gian: {quiz.timelimit} phút | Số lần thử: {quiz.maxattempts} | Câu hỏi:{' '}
+                      {quiz.quizquestions?.length || 0}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setSelectedQuiz(quiz);
+                        fetchQuizDetails(quiz.quizid);
+                      }}
+                      className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 cursor-pointer"
+                    >
+                      Quản lý câu hỏi
+                    </button>
+                    <button
+                      onClick={() => handleDeleteQuiz(quiz.quizid)}
+                      className="px-3 py-1 text-sm text-red-600 hover:text-red-800 cursor-pointer"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Question Management for Selected Quiz */}
+        {selectedQuiz && (
+          <div className="border-t pt-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">
+                Câu hỏi của Quiz: {selectedQuiz.title}
+              </h3>
+              <button
+                onClick={() => {
+                  setQuestionForm({
+                    questiontext: '',
+                    explanation: '',
+                    options: [
+                      { optiontext: '', iscorrect: false },
+                      { optiontext: '', iscorrect: false },
+                    ],
+                  });
+                  setShowQuestionForm(true);
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 cursor-pointer"
+              >
+                <FaPlus /> Thêm câu hỏi
+              </button>
+            </div>
+
+            {quizDetails[selectedQuiz.quizid]?.questions?.length > 0 ? (
+              <div className="space-y-3">
+                {quizDetails[selectedQuiz.quizid].questions.map((question, qIndex) => (
+                  <div key={question.questionid} className="border rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1">
+                        <p className="font-medium">
+                          Câu {qIndex + 1}: {question.questiontext}
+                        </p>
+                        {question.explanation && (
+                          <p className="text-sm text-gray-500 mt-1">
+                            Giải thích: {question.explanation}
+                          </p>
+                        )}
+                        <div className="mt-2 space-y-1">
+                          {question.quizoptions?.map((option) => (
+                            <div
+                              key={option.optionid}
+                              className={`text-sm ${
+                                option.iscorrect ? 'text-green-600 font-medium' : 'text-gray-600'
+                              }`}
+                            >
+                              {option.iscorrect ? '✓ ' : '○ '}
+                              {option.optiontext}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteQuestion(question.questionid)}
+                        className="text-red-600 hover:text-red-800 cursor-pointer"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">Chưa có câu hỏi nào</div>
+            )}
+          </div>
+        )}
+
+        {/* Create Quiz Form Modal */}
+        {showQuizForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h3 className="text-lg font-bold mb-4">Tạo Quiz mới</h3>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleCreateQuiz();
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <label className="block text-sm font-medium mb-2">Tên Quiz *</label>
+                  <input
+                    type="text"
+                    value={quizForm.title}
+                    onChange={(e) => setQuizForm({ ...quizForm, title: e.target.value })}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Thời gian (phút)</label>
+                  <input
+                    type="number"
+                    value={quizForm.timelimit}
+                    onChange={(e) => setQuizForm({ ...quizForm, timelimit: parseInt(e.target.value) || 30 })}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+                    min="1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Số lần thử tối đa</label>
+                  <input
+                    type="number"
+                    value={quizForm.maxattempts}
+                    onChange={(e) => setQuizForm({ ...quizForm, maxattempts: parseInt(e.target.value) || 1 })}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+                    min="1"
+                  />
+                </div>
+                <div>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={quizForm.showanswersaftersubmission}
+                      onChange={(e) =>
+                        setQuizForm({ ...quizForm, showanswersaftersubmission: e.target.checked })
+                      }
+                    />
+                    <span className="text-sm">Hiển thị đáp án sau khi nộp bài</span>
+                  </label>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setShowQuizForm(false)}
+                    className="px-4 py-2 border rounded-lg hover:bg-gray-100 cursor-pointer"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 cursor-pointer"
+                  >
+                    Tạo
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Create Question Form Modal */}
+        {showQuestionForm && selectedQuiz && (
+          <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              <h3 className="text-lg font-bold mb-4">Thêm câu hỏi mới</h3>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleCreateQuestion();
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <label className="block text-sm font-medium mb-2">Câu hỏi *</label>
+                  <textarea
+                    value={questionForm.questiontext}
+                    onChange={(e) => setQuestionForm({ ...questionForm, questiontext: e.target.value })}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+                    rows="3"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Giải thích</label>
+                  <textarea
+                    value={questionForm.explanation}
+                    onChange={(e) => setQuestionForm({ ...questionForm, explanation: e.target.value })}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+                    rows="2"
+                  />
+                </div>
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-sm font-medium">Đáp án *</label>
+                    <button
+                      type="button"
+                      onClick={addOption}
+                      className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer"
+                    >
+                      + Thêm đáp án
+                    </button>
+                  </div>
+                  {questionForm.options.map((option, index) => (
+                    <div key={index} className="flex items-center gap-2 mb-2">
+                      <input
+                        type="checkbox"
+                        checked={option.iscorrect}
+                        onChange={(e) => updateOption(index, 'iscorrect', e.target.checked)}
+                        className="w-4 h-4"
+                      />
+                      <input
+                        type="text"
+                        value={option.optiontext}
+                        onChange={(e) => updateOption(index, 'optiontext', e.target.value)}
+                        className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+                        placeholder={`Đáp án ${index + 1}`}
+                        required
+                      />
+                      {questionForm.options.length > 2 && (
+                        <button
+                          type="button"
+                          onClick={() => removeOption(index)}
+                          className="text-red-600 hover:text-red-800 cursor-pointer"
+                        >
+                          <FaTrash />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <p className="text-xs text-gray-500 mt-2">
+                    ✓ Chọn checkbox để đánh dấu đáp án đúng
+                  </p>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setShowQuestionForm(false)}
+                    className="px-4 py-2 border rounded-lg hover:bg-gray-100 cursor-pointer"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 cursor-pointer"
+                  >
+                    Tạo câu hỏi
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
         </div>
     );

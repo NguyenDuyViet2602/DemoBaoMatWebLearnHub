@@ -1,12 +1,6 @@
 import React from 'react';
 
 export default function RatingStars({ value = 4.8, reviewCount = 1200, size = 'md' }) {
-  const formatCount = (count) => {
-    if (!count || count === 0) return '';
-    if (count >= 1000) return `(${(count / 1000).toFixed(1)}K)`;
-    return `(${count})`;
-  };
-
   const starSize = size === 'sm' ? 'h-3 w-3' : 'h-3.5 w-3.5';
   const showCount = reviewCount !== undefined && reviewCount !== null;
 
@@ -19,8 +13,8 @@ export default function RatingStars({ value = 4.8, reviewCount = 1200, size = 'm
           </svg>
         ))}
       </div>
-      {showCount && (
-        <span className="text-xs font-medium text-gray-700">{formatCount(reviewCount)}</span>
+      {showCount && reviewCount > 0 && (
+        <span className="text-xs font-medium text-gray-700">({reviewCount})</span>
       )}
     </div>
   );

@@ -21,7 +21,7 @@ export default function Newsletter() {
                 <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
               </svg>
             </div>
-            <button type="submit" className="rounded-full bg-yellow-400 px-6 py-3 text-sm font-semibold text-gray-900 shadow hover:bg-yellow-500 transition-colors">
+            <button type="submit" className="rounded-full bg-yellow-400 px-6 py-3 text-sm font-semibold text-gray-900 shadow hover:bg-yellow-500 transition-colors cursor-pointer">
               Đăng ký
             </button>
           </form>

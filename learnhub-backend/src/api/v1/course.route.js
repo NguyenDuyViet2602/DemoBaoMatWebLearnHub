@@ -23,6 +23,9 @@ router.get(
 // === Các route YÊU CẦU ĐĂNG NHẬP (Protected) ===
 router.use(authMiddleware);
 
+// GET /api/v1/courses/:id/learn - Lấy nội dung khóa học cho học viên (đặt trước /:id để tránh conflict)
+router.get("/:id/learn", courseController.handleGetCourseForLearning);
+
 // POST /api/v1/courses - Tạo khóa học mới (Yêu cầu role Teacher/Admin)
 router.post("/", courseController.handleCreateCourse);
 

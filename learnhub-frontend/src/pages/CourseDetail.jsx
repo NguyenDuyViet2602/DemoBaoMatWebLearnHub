@@ -11,31 +11,184 @@ export default function CourseDetail() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [expandedChapters, setExpandedChapters] = useState(new Set());
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [hasProgress, setHasProgress] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(false);
+
+  const fetchCourseDetails = async () => {
+    try {
+      setLoading(true);
+      const [courseRes, reviewsRes] = await Promise.all([
+        axios.get(`http://localhost:8080/api/v1/courses/${id}`),
+        axios.get(`http://localhost:8080/api/v1/reviews/${id}`).catch(() => ({ data: { data: [] } }))
+      ]);
+
+      setCourse(courseRes.data?.data || null);
+      setReviews(reviewsRes.data?.data || []);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching course:', err);
+      setError(err.response?.status === 404 ? 'Khóa học không tồn tại' : 'Lỗi khi tải thông tin khóa học');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const checkEnrollmentAndProgress = async () => {
+    if (!isLoggedIn || !id) return;
+    
+    try {
+      setCheckingStatus(true);
+      const token = localStorage.getItem('token');
+      
+      // Check enrollment
+      const enrollmentsRes = await axios.get('http://localhost:8080/api/v1/enrollments/my-courses', {
+        headers: { Authorization: `Bearer ${token}` }
+      }).catch(() => ({ data: { data: [] } }));
+      
+      const enrolledCourses = enrollmentsRes.data?.data || [];
+      const enrolled = enrolledCourses.some(c => c.courseid === parseInt(id));
+      setIsEnrolled(enrolled);
+      
+      // Check progress if enrolled
+      if (enrolled) {
+        const progressRes = await axios.get(`http://localhost:8080/api/v1/progress/course/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).catch(() => ({ data: { data: [] } }));
+        
+        const completedLessons = progressRes.data?.data || [];
+        setHasProgress(completedLessons.length > 0);
+      }
+      
+      // Check favorite status
+      const favoritesRes = await axios.get('http://localhost:8080/api/v1/favorites', {
+        headers: { Authorization: `Bearer ${token}` }
+      }).catch(() => ({ data: { data: [] } }));
+      
+      const favorites = favoritesRes.data?.data || [];
+      const favorited = favorites.some(f => f.courseid === parseInt(id));
+      setIsFavorite(favorited);
+    } catch (err) {
+      console.error('Error checking enrollment/progress:', err);
+    } finally {
+      setCheckingStatus(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchCourseDetails = async () => {
-      try {
-        setLoading(true);
-        const [courseRes, reviewsRes] = await Promise.all([
-          axios.get(`http://localhost:8080/api/v1/courses/${id}`),
-          axios.get(`http://localhost:8080/api/v1/reviews/${id}`).catch(() => ({ data: { data: [] } }))
-        ]);
-
-        setCourse(courseRes.data?.data || null);
-        setReviews(reviewsRes.data?.data || []);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching course:', err);
-        setError(err.response?.status === 404 ? 'Khóa học không tồn tại' : 'Lỗi khi tải thông tin khóa học');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (id) {
       fetchCourseDetails();
     }
+    const loggedIn = !!localStorage.getItem('token');
+    setIsLoggedIn(loggedIn);
   }, [id]);
+
+  useEffect(() => {
+    if (isLoggedIn && id) {
+      checkEnrollmentAndProgress();
+    } else {
+      setIsEnrolled(false);
+      setHasProgress(false);
+      setIsFavorite(false);
+    }
+  }, [isLoggedIn, id]);
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    if (!reviewRating || reviewRating < 1 || reviewRating > 5) {
+      alert('Vui lòng chọn số sao đánh giá từ 1 đến 5');
+      return;
+    }
+
+    if (!isLoggedIn) {
+      alert('Vui lòng đăng nhập để đánh giá khóa học');
+      return;
+    }
+
+    try {
+      setSubmittingReview(true);
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `http://localhost:8080/api/v1/reviews/${id}`,
+        {
+          rating: reviewRating,
+          comment: reviewComment.trim() || null,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      
+      // Reset form
+      setReviewRating(0);
+      setReviewComment('');
+      setShowReviewForm(false);
+      
+      // Refresh reviews
+      await fetchCourseDetails();
+      alert('Cảm ơn bạn đã đánh giá khóa học!');
+    } catch (err) {
+      console.error('Error submitting review:', err);
+      alert(err.response?.data?.message || 'Lỗi khi gửi đánh giá. ' + err.message);
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const handleToggleFavorite = async () => {
+    if (!isLoggedIn) {
+      alert('Vui lòng đăng nhập để thêm vào yêu thích');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      if (isFavorite) {
+        // Remove from favorites
+        await axios.delete(`http://localhost:8080/api/v1/favorites/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setIsFavorite(false);
+        alert('Đã xóa khỏi danh sách yêu thích');
+      } else {
+        // Add to favorites
+        await axios.post(
+          `http://localhost:8080/api/v1/favorites`,
+          { courseId: parseInt(id) },
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+        setIsFavorite(true);
+        alert('Đã thêm vào danh sách yêu thích');
+      }
+    } catch (err) {
+      console.error('Error toggling favorite:', err);
+      alert(err.response?.data?.message || 'Lỗi khi cập nhật yêu thích');
+    }
+  };
+
+  const handlePurchaseOrLearn = () => {
+    if (!isLoggedIn) {
+      alert('Vui lòng đăng nhập để mua khóa học');
+      return;
+    }
+
+    if (isEnrolled) {
+      // Navigate to learning page
+      navigate(`/learn/${id}`);
+    } else {
+      // Handle purchase (you may need to implement this)
+      alert('Chức năng mua khóa học đang được phát triển');
+    }
+  };
 
   if (loading) {
     return (
@@ -52,7 +205,7 @@ export default function CourseDetail() {
           <p className="text-red-600 mb-4">{error || 'Khóa học không tồn tại'}</p>
           <button
             onClick={() => navigate('/')}
-            className="rounded-full bg-emerald-600 px-6 py-2 text-white hover:bg-emerald-700"
+            className="rounded-full bg-emerald-600 px-6 py-2 text-white hover:bg-emerald-700 cursor-pointer"
           >
             Về trang chủ
           </button>
@@ -95,7 +248,7 @@ export default function CourseDetail() {
               {/* Video controls overlay */}
               <div className="absolute inset-x-0 bottom-0 bg-black/60 px-4 pb-3 pt-2 text-white">
                 <div className="flex items-center gap-3">
-                  <button className="grid size-8 place-items-center rounded-full bg-white/90 text-gray-900 hover:bg-white transition-colors">
+                  <button className="grid size-8 place-items-center rounded-full bg-white/90 text-gray-900 hover:bg-white transition-colors cursor-pointer">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M8 5v14l11-7z" />
                     </svg>
@@ -139,8 +292,7 @@ export default function CourseDetail() {
               )}
               {averageRating > 0 && (
                 <div className="flex items-center gap-1">
-                  <RatingStars value={parseFloat(averageRating)} size="sm" />
-                  <span className="text-gray-600">({reviews.length})</span>
+                  <RatingStars value={parseFloat(averageRating)} reviewCount={reviews.length} size="sm" />
                 </div>
               )}
             </div>
@@ -158,32 +310,142 @@ export default function CourseDetail() {
           {course.chapters && course.chapters.length > 0 && (
             <section className="mt-8">
               <h2 className="font-semibold text-lg mb-4">Nội dung khóa học</h2>
-              <div className="space-y-3">
-                {course.chapters.map((chapter) => (
-                  <div key={chapter.chapterid} className="border rounded-lg p-4">
-                    <h3 className="font-medium text-gray-900 mb-2">{chapter.title}</h3>
-                    {chapter.lessons && chapter.lessons.length > 0 && (
-                      <ul className="space-y-2 ml-4">
-                        {chapter.lessons.map((lesson) => (
-                          <li key={lesson.lessonid} className="flex items-center gap-2 text-sm text-gray-600">
-                            <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>{lesson.title}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                ))}
+              <div className="space-y-2">
+                {course.chapters.map((chapter, chapterIndex) => {
+                  const isExpanded = expandedChapters.has(chapter.chapterid);
+                  const lessonCount = chapter.lessons?.length || 0;
+                  
+                  return (
+                    <div key={chapter.chapterid} className="border rounded-lg overflow-hidden">
+                      <button
+                        onClick={() => {
+                          const newExpanded = new Set(expandedChapters);
+                          if (isExpanded) {
+                            newExpanded.delete(chapter.chapterid);
+                          } else {
+                            newExpanded.add(chapter.chapterid);
+                          }
+                          setExpandedChapters(newExpanded);
+                        }}
+                        className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                      >
+                        <div className="flex items-center gap-3 flex-1 text-left">
+                          <span className="text-sm font-medium text-gray-500">
+                            Chương {chapterIndex + 1}:
+                          </span>
+                          <span className="font-medium text-gray-900">{chapter.title}</span>
+                          {lessonCount > 0 && (
+                            <span className="text-xs text-gray-500">({lessonCount} bài học)</span>
+                          )}
+                        </div>
+                        <svg
+                          className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      {isExpanded && chapter.lessons && chapter.lessons.length > 0 && (
+                        <div className="border-t bg-gray-50">
+                          <ul className="py-2">
+                            {chapter.lessons.map((lesson, lessonIndex) => (
+                              <li
+                                key={lesson.lessonid}
+                                className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-100 transition-colors"
+                              >
+                                <svg className="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="text-gray-500 text-xs w-6">{lessonIndex + 1}.</span>
+                                <span className="flex-1">{lesson.title}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </section>
           )}
 
           {/* Reviews */}
           <section className="mt-8">
-            <h2 className="font-semibold text-lg mb-4">Đánh giá ({reviews.length})</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-lg">Đánh giá ({reviews.length})</h2>
+              {isLoggedIn && !showReviewForm && (
+                <button
+                  onClick={() => setShowReviewForm(true)}
+                  className="px-4 py-2 text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                >
+                  Viết đánh giá
+                </button>
+              )}
+            </div>
+
+            {/* Review Form */}
+            {showReviewForm && isLoggedIn && (
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
+                <h3 className="text-sm font-semibold mb-3">Viết đánh giá của bạn</h3>
+                <form onSubmit={handleSubmitReview}>
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium mb-2">Đánh giá sao *</label>
+                    <div className="flex items-center gap-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setReviewRating(star)}
+                          className={`text-2xl transition-colors cursor-pointer ${
+                            star <= reviewRating ? 'text-amber-500' : 'text-gray-300'
+                          }`}
+                        >
+                          ★
+                        </button>
+                      ))}
+                      {reviewRating > 0 && (
+                        <span className="text-sm text-gray-600 ml-2">{reviewRating} sao</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium mb-2">Bình luận (tùy chọn)</label>
+                    <textarea
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                      placeholder="Chia sẻ trải nghiệm của bạn về khóa học này..."
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
+                      rows="4"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      disabled={!reviewRating || submittingReview}
+                      className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                    >
+                      {submittingReview ? 'Đang gửi...' : 'Gửi đánh giá'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowReviewForm(false);
+                        setReviewRating(0);
+                        setReviewComment('');
+                      }}
+                      className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                    >
+                      Hủy
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
             {reviews.length > 0 ? (
               <>
                 <ul className="space-y-5">
@@ -220,7 +482,7 @@ export default function CourseDetail() {
                 </ul>
                 {reviews.length > 5 && (
                   <div className="mt-6">
-                    <button className="rounded-full border px-5 py-2 text-sm font-medium hover:bg-gray-50 transition-colors">
+                    <button className="rounded-full border px-5 py-2 text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer">
                       Xem thêm đánh giá
                     </button>
                   </div>
@@ -250,12 +512,24 @@ export default function CourseDetail() {
                 </span>
               )}
             </div>
-            <button className="mt-4 w-full rounded-full bg-emerald-600 px-4 py-3 text-white font-semibold hover:bg-emerald-700 transition-colors">
-              Mua khóa học
+            <button
+              onClick={handlePurchaseOrLearn}
+              className="mt-4 w-full rounded-full bg-emerald-600 px-4 py-3 text-white font-semibold hover:bg-emerald-700 transition-colors cursor-pointer"
+            >
+              {isEnrolled ? (hasProgress ? 'Tiếp tục học' : 'Bắt đầu học') : 'Mua khóa học'}
             </button>
-            <button className="mt-3 w-full rounded-full border px-4 py-3 text-sm font-medium hover:bg-gray-50 transition-colors">
-              Thêm vào yêu thích
-            </button>
+            {isLoggedIn && (
+              <button
+                onClick={handleToggleFavorite}
+                className={`mt-3 w-full rounded-full border px-4 py-3 text-sm font-medium transition-colors cursor-pointer ${
+                  isFavorite
+                    ? 'bg-red-50 border-red-300 text-red-600 hover:bg-red-100'
+                    : 'hover:bg-gray-50'
+                }`}
+              >
+                {isFavorite ? 'Đã thêm vào yêu thích' : 'Thêm vào yêu thích'}
+              </button>
+            )}
             <ul className="mt-4 space-y-2 text-sm text-gray-600">
               <li className="flex items-center gap-2">
                 <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

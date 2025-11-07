@@ -1,6 +1,6 @@
 // src/services/course.service.js
 const { Op } = require("sequelize");
-const { courses, users, categories, chapters, lessons } = require("../models");
+const { courses, users, categories, chapters, lessons, enrollments, lessonprogress, quizzes } = require("../models");
 
 /**
  * Lấy danh sách tất cả khóa học với tùy chọn lọc và phân trang
@@ -161,10 +161,124 @@ const deleteCourse = async (courseId, user) => {
   return { message: "Xóa khóa học thành công" };
 };
 
+/**
+ * Lấy nội dung khóa học cho học viên (chỉ dành cho học viên đã ghi danh)
+ * @param {number} courseId - ID khóa học
+ * @param {number} studentId - ID học viên
+ */
+const getCourseForLearning = async (courseId, studentId) => {
+  // 1. Kiểm tra enrollment
+  const enrollment = await enrollments.findOne({
+    where: {
+      studentid: studentId,
+      courseid: courseId,
+    },
+  });
+
+  if (!enrollment) {
+    throw new Error('Bạn chưa ghi danh khóa học này.');
+  }
+
+  // 2. Lấy thông tin khóa học với chapters và lessons
+  const course = await courses.findByPk(courseId, {
+    include: [
+      {
+        model: users,
+        as: 'teacher',
+        attributes: ['userid', 'fullname', 'profilepicture'],
+      },
+      {
+        model: categories,
+        as: 'category',
+        attributes: ['categoryid', 'categoryname'],
+      },
+      {
+        model: chapters,
+        as: 'chapters',
+        separate: true,
+        order: [['sortorder', 'ASC']],
+        include: [
+          {
+            model: lessons,
+            as: 'lessons',
+            separate: true,
+            order: [['sortorder', 'ASC']],
+            include: [
+              {
+                model: quizzes,
+                as: 'quizzes',
+                attributes: ['quizid', 'title', 'timelimit', 'maxattempts'],
+                separate: true,
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  });
+
+  if (!course) {
+    throw new Error('Không tìm thấy khóa học.');
+  }
+
+  // 3. Lấy tiến độ học tập
+  const completedLessons = await lessonprogress.findAll({
+    where: {
+      studentid: studentId,
+      iscompleted: true,
+    },
+    attributes: ['lessonid'],
+    include: {
+      model: lessons,
+      as: 'lesson',
+      where: { courseid: courseId },
+      attributes: [],
+    },
+  });
+
+  const completedLessonIds = completedLessons.map((item) => item.lessonid);
+
+  // 4. Tính tiến độ tổng thể
+  const totalLessons = course.chapters.reduce(
+    (total, chapter) => total + (chapter.lessons?.length || 0),
+    0
+  );
+  const completedCount = completedLessonIds.length;
+  const progressPercentage =
+    totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
+
+  // 5. Chuyển đổi sang plain object và thêm thông tin tiến độ
+  const courseData = course.toJSON ? course.toJSON() : course;
+  
+  // Thêm thông tin completed vào mỗi lesson
+  if (courseData.chapters) {
+    courseData.chapters = courseData.chapters.map((chapter) => {
+      if (chapter.lessons) {
+        chapter.lessons = chapter.lessons.map((lesson) => ({
+          ...lesson,
+          isCompleted: completedLessonIds.includes(lesson.lessonid),
+        }));
+      }
+      return chapter;
+    });
+  }
+
+  return {
+    ...courseData,
+    progress: {
+      completedLessons: completedCount,
+      totalLessons: totalLessons,
+      percentage: progressPercentage,
+      completedLessonIds: completedLessonIds,
+    },
+  };
+};
+
 module.exports = {
   getAllCourses,
   getCourseDetailsById,
   createCourse,
   updateCourse,
   deleteCourse,
+  getCourseForLearning,
 };

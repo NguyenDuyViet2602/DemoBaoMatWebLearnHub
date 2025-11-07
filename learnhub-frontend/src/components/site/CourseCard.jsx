@@ -1,15 +1,84 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import RatingStars from './RatingStars';
 
-export default function CourseCard({ course }) {
+export default function CourseCard({ course, onFavoriteToggle }) {
   const navigate = useNavigate();
   const courseId = course.courseid || course.id;
   const hasLink = !!courseId;
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+
+  useEffect(() => {
+    const loggedIn = !!localStorage.getItem('token');
+    setIsLoggedIn(loggedIn);
+    if (loggedIn && courseId) {
+      checkFavoriteStatus();
+    } else {
+      setIsFavorite(false);
+    }
+  }, [courseId]);
+
+  const checkFavoriteStatus = async () => {
+    const token = localStorage.getItem('token');
+    if (!token || !courseId) return;
+    
+    try {
+      const favoritesRes = await axios.get('http://localhost:8080/api/v1/favorites', {
+        headers: { Authorization: `Bearer ${token}` }
+      }).catch(() => ({ data: { data: [] } }));
+      
+      const favorites = favoritesRes.data?.data || [];
+      const favorited = favorites.some(f => f.courseid === parseInt(courseId));
+      setIsFavorite(favorited);
+    } catch (err) {
+      console.error('Error checking favorite status:', err);
+    }
+  };
 
   const handleClick = () => {
     if (hasLink) {
       navigate(`/course/${courseId}`);
+    }
+  };
+
+  const handleToggleFavorite = async (e) => {
+    e.stopPropagation(); // Prevent card click
+    
+    if (!isLoggedIn) {
+      alert('Vui lòng đăng nhập để thêm vào yêu thích');
+      return;
+    }
+
+    if (!courseId) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      if (isFavorite) {
+        // Remove from favorites
+        await axios.delete(`http://localhost:8080/api/v1/favorites/${courseId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setIsFavorite(false);
+        // Call callback to refresh parent list if provided
+        if (onFavoriteToggle) {
+          onFavoriteToggle();
+        }
+      } else {
+        // Add to favorites
+        await axios.post(
+          `http://localhost:8080/api/v1/favorites`,
+          { courseId: parseInt(courseId) },
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+        setIsFavorite(true);
+      }
+    } catch (err) {
+      console.error('Error toggling favorite:', err);
+      alert(err.response?.data?.message || 'Lỗi khi cập nhật yêu thích');
     }
   };
 
@@ -27,7 +96,32 @@ export default function CourseCard({ course }) {
             <span className="rounded-full bg-red-500 px-2 py-1 text-[10px] font-semibold text-white shadow">Best Seller</span>
           )}
         </div>
-        <div className="absolute right-3 top-3">
+        <div className="absolute right-3 top-3 flex items-center gap-2">
+          {isLoggedIn && (
+            <button
+              onClick={handleToggleFavorite}
+              className={`p-2 rounded-full transition-all cursor-pointer ${
+                isFavorite
+                  ? 'bg-red-500 text-white hover:bg-red-600'
+                  : 'bg-white/90 text-gray-600 hover:bg-white hover:text-red-500'
+              }`}
+              title={isFavorite ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
+            >
+              <svg
+                className="w-4 h-4"
+                fill={isFavorite ? 'currentColor' : 'none'}
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                />
+              </svg>
+            </button>
+          )}
           {course.badges?.includes('20% OFF') || course.badges?.includes('-20%') ? (
             <span className="rounded-full bg-red-500 px-2 py-1 text-[10px] font-semibold text-white shadow">20% OFF</span>
           ) : course.badges?.filter(b => b !== 'Best Seller').map((b) => (
