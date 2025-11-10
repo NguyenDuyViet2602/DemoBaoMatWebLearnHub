@@ -175,7 +175,7 @@ export default function CourseDetail() {
     }
   };
 
-  const handlePurchaseOrLearn = () => {
+  const handlePurchaseOrLearn = async () => {
     if (!isLoggedIn) {
       alert('Vui lòng đăng nhập để mua khóa học');
       return;
@@ -184,9 +184,74 @@ export default function CourseDetail() {
     if (isEnrolled) {
       // Navigate to learning page
       navigate(`/learn/${id}`);
-    } else {
-      // Handle purchase (you may need to implement this)
-      alert('Chức năng mua khóa học đang được phát triển');
+      return;
+    }
+
+    // Nếu khóa học miễn phí, enroll trực tiếp
+    if (course && course.price === 0) {
+      try {
+        const token = localStorage.getItem('token');
+        await axios.post(
+          'http://localhost:8080/api/v1/enrollments',
+          { courseId: parseInt(id) },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        alert('Đăng ký khóa học miễn phí thành công!');
+        setIsEnrolled(true);
+        navigate(`/learn/${id}`);
+      } catch (err) {
+        console.error('Error enrolling:', err);
+        alert(err.response?.data?.message || 'Lỗi khi đăng ký khóa học');
+      }
+      return;
+    }
+
+    // Khóa học có phí - thêm vào giỏ hàng và đi đến checkout
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        'http://localhost:8080/api/v1/cart',
+        { courseId: parseInt(id) },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      navigate('/checkout');
+    } catch (err) {
+      console.error('Error adding to cart:', err);
+      if (err.response?.data?.message?.includes('đã có trong giỏ hàng')) {
+        // Đã có trong giỏ hàng, đi thẳng đến checkout
+        navigate('/checkout');
+      } else {
+        alert(err.response?.data?.message || 'Lỗi khi thêm vào giỏ hàng');
+      }
+    }
+  };
+
+  const handleAddToCart = async () => {
+    if (!isLoggedIn) {
+      alert('Vui lòng đăng nhập để thêm vào giỏ hàng');
+      return;
+    }
+
+    if (course && course.price === 0) {
+      alert('Khóa học miễn phí, vui lòng bấm "Đăng ký miễn phí"');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        'http://localhost:8080/api/v1/cart',
+        { courseId: parseInt(id) },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert('Đã thêm vào giỏ hàng!');
+    } catch (err) {
+      console.error('Error adding to cart:', err);
+      if (err.response?.data?.message?.includes('đã có trong giỏ hàng')) {
+        alert('Khóa học này đã có trong giỏ hàng của bạn');
+      } else {
+        alert(err.response?.data?.message || 'Lỗi khi thêm vào giỏ hàng');
+      }
     }
   };
 
@@ -516,8 +581,19 @@ export default function CourseDetail() {
               onClick={handlePurchaseOrLearn}
               className="mt-4 w-full rounded-full bg-emerald-600 px-4 py-3 text-white font-semibold hover:bg-emerald-700 transition-colors cursor-pointer"
             >
-              {isEnrolled ? (hasProgress ? 'Tiếp tục học' : 'Bắt đầu học') : 'Mua khóa học'}
+              {isEnrolled
+                ? (hasProgress ? 'Tiếp tục học' : 'Bắt đầu học')
+                : (course && course.price === 0 ? 'Đăng ký miễn phí' : 'Mua khóa học')
+              }
             </button>
+            {isLoggedIn && !isEnrolled && course && course.price > 0 && (
+              <button
+                onClick={handleAddToCart}
+                className="mt-3 w-full rounded-full border border-emerald-600 px-4 py-3 text-emerald-600 font-semibold hover:bg-emerald-50 transition-colors cursor-pointer"
+              >
+                Thêm vào giỏ hàng
+              </button>
+            )}
             {isLoggedIn && (
               <button
                 onClick={handleToggleFavorite}

@@ -1,6 +1,8 @@
 // src/services/course.service.js
 const { Op } = require("sequelize");
 const { courses, users, categories, chapters, lessons, enrollments, lessonprogress, quizzes } = require("../models");
+const cloudinary = require("../config/cloudinary.config");
+const { Readable } = require("stream");
 
 /**
  * Lấy danh sách tất cả khóa học với tùy chọn lọc và phân trang
@@ -274,6 +276,69 @@ const getCourseForLearning = async (courseId, studentId) => {
   };
 };
 
+/**
+ * Upload ảnh lên Cloudinary
+ * @param {Buffer} fileBuffer - Buffer của file ảnh
+ * @param {string} folder - Thư mục trên Cloudinary (ví dụ: 'courses')
+ * @returns {Promise<string>} - URL của ảnh trên Cloudinary
+ */
+const uploadImageToCloudinary = async (fileBuffer, folder = 'courses') => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: folder,
+        resource_type: 'image',
+        transformation: [
+          { width: 1200, height: 675, crop: 'fill', quality: 'auto' }, // Tối ưu kích thước
+        ],
+      },
+      (error, result) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(result.secure_url); // Trả về URL an toàn (HTTPS)
+        }
+      }
+    );
+
+    // Chuyển buffer thành stream để upload
+    const stream = Readable.from(fileBuffer);
+    stream.pipe(uploadStream);
+  });
+};
+
+/**
+ * Upload ảnh cho khóa học và cập nhật database
+ * @param {number} courseId - ID khóa học
+ * @param {Buffer} fileBuffer - Buffer của file ảnh
+ * @param {object} user - Người dùng thực hiện (từ middleware)
+ * @returns {Promise<object>} - Khóa học đã được cập nhật
+ */
+const uploadCourseImage = async (courseId, fileBuffer, user) => {
+  // 1. Kiểm tra khóa học tồn tại
+  const course = await courses.findByPk(courseId);
+  if (!course) {
+    throw new Error("Không tìm thấy khóa học");
+  }
+
+  // 2. Kiểm tra quyền: Chỉ Admin hoặc chủ sở hữu khóa học mới được upload
+  if (user.role !== "Admin" && course.teacherid !== user.id) {
+    throw new Error("Bạn không có quyền upload ảnh cho khóa học này");
+  }
+
+  // 3. Xóa ảnh cũ trên Cloudinary nếu có (optional - có thể bỏ qua để tiết kiệm API calls)
+  // Cloudinary có thể tự động quản lý storage
+
+  // 4. Upload ảnh mới lên Cloudinary
+  const imageUrl = await uploadImageToCloudinary(fileBuffer, 'courses');
+
+  // 5. Cập nhật imageurl trong database
+  await course.update({ imageurl: imageUrl });
+
+  // 6. Trả về khóa học đã cập nhật
+  return course;
+};
+
 module.exports = {
   getAllCourses,
   getCourseDetailsById,
@@ -281,4 +346,5 @@ module.exports = {
   updateCourse,
   deleteCourse,
   getCourseForLearning,
+  uploadCourseImage,
 };

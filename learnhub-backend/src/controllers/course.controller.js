@@ -145,6 +145,47 @@ const handleGetCourseForLearning = async (req, res, next) => {
   }
 };
 
+// [POST] /api/v1/courses/:id/upload-image
+const handleUploadCourseImage = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const user = req.user; // Lấy từ authMiddleware
+
+    // Kiểm tra file đã được upload chưa
+    if (!req.file) {
+      return res.status(400).json({
+        message: "Vui lòng chọn file ảnh để upload",
+      });
+    }
+
+    // Upload ảnh lên Cloudinary và cập nhật database
+    const updatedCourse = await courseService.uploadCourseImage(
+      Number(id),
+      req.file.buffer,
+      user
+    );
+
+    res.status(200).json({
+      message: "Upload ảnh khóa học thành công",
+      data: {
+        courseId: updatedCourse.courseid,
+        imageUrl: updatedCourse.imageurl,
+      },
+    });
+  } catch (error) {
+    if (error.message.includes("Bạn không có quyền")) {
+      return res.status(403).json({ message: error.message });
+    }
+    if (error.message === "Không tìm thấy khóa học") {
+      return res.status(404).json({ message: error.message });
+    }
+    if (error.message.includes("Chỉ chấp nhận file ảnh")) {
+      return res.status(400).json({ message: error.message });
+    }
+    next(error);
+  }
+};
+
 module.exports = {
   handleGetAllCourses,
   handleGetCourseDetailsById,
@@ -153,4 +194,5 @@ module.exports = {
   handleDeleteCourse,
   handleGetCoursesByCategory,
   handleGetCourseForLearning,
+  handleUploadCourseImage,
 };

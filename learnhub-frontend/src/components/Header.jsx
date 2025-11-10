@@ -4,6 +4,7 @@ import { FaUser, FaSignOutAlt, FaShoppingCart, FaHeart, FaBell, FaCog } from 're
 import { useNavigate } from 'react-router-dom';
 import LoginPopup from './LoginPopup';
 import SignupPopup from './SignupPopup';
+import NotificationBell from './NotificationBell';
 
 function Header() {
   const [openBrowse, setOpenBrowse] = useState(false);
@@ -34,6 +35,7 @@ function Header() {
     // Listen for custom event (from same tab)
     window.addEventListener('userLogin', handleStorageChange);
     window.addEventListener('userLogout', handleStorageChange);
+    window.addEventListener('userUpdate', handleStorageChange);
 
     // Check on mount
     handleStorageChange();
@@ -42,6 +44,7 @@ function Header() {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('userLogin', handleStorageChange);
       window.removeEventListener('userLogout', handleStorageChange);
+      window.removeEventListener('userUpdate', handleStorageChange);
     };
   }, []);
 
@@ -132,9 +135,7 @@ function Header() {
               Trở thành Giảng viên
             </button>
           )}
-          <IconButton ariaLabel="Thông báo">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="size-5"><path d="M6 8a6 6 0 1112 0c0 7 2 5 2 7H4c0-2 2 0 2-7" /><path d="M13.73 21a2 2 0 01-3.46 0" /></svg>
-          </IconButton>
+          <NotificationBell />
           <div ref={accountRef} className="relative">
             {isLoggedIn && user ? (
               <button
@@ -210,7 +211,7 @@ function Header() {
                       </button>
                       <button
                         onClick={() => {
-                          // TODO: Navigate to cart
+                          navigate('/cart');
                           setOpenAccount(false);
                         }}
                         className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors cursor-pointer"
@@ -230,13 +231,13 @@ function Header() {
                       </button>
                       <button
                         onClick={() => {
-                          // TODO: Navigate to notifications
+                          navigate('/notifications');
                           setOpenAccount(false);
                         }}
                         className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors cursor-pointer"
                       >
                         <FaBell className="text-gray-400" />
-                        <span>Notifications</span>
+                        <span>Thông báo</span>
                       </button>
                       <button
                         onClick={() => {

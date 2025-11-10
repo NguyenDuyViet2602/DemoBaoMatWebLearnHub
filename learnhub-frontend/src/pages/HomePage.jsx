@@ -119,7 +119,7 @@ function HomePage() {
           courseid: c.courseid || c.id, // Thêm courseid để navigate
           title: c.coursename,
           instructor: c.teacherName || 'Instructor',
-          image: c.thumbnailUrl || '/placeholder.svg',
+          image: c.imageurl || c.thumbnailUrl || '/placeholder.svg',
           description: c.description || '',
           price: c.price === 0 ? 'Miễn phí' : `${c.price.toLocaleString()} VND`,
           rating: typeof c.rating === 'number' ? c.rating : 4.8,
@@ -342,7 +342,7 @@ function CarouselInterest() {
           courseid: c.courseid || c.id, // Thêm courseid để navigate
           title: c.coursename,
           instructor: c.teacherName || 'Instructor',
-          image: c.thumbnailUrl || '/placeholder.svg',
+          image: c.imageurl || c.thumbnailUrl || '/placeholder.svg',
           description: c.description || '',
           price: c.price === 0 ? 'Miễn phí' : `${c.price.toLocaleString()} VND`,
         })));

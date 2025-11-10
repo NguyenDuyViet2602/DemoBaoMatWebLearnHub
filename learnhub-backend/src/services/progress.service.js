@@ -5,8 +5,10 @@ const {
     enrollments,
     coursecompletions, // Thêm model này
     certificates, // Thêm model này
+    courses,
     sequelize,
   } = require('../models');
+const notificationService = require('./notification.service');
   
   /**
    * HÀM NỘI BỘ: Tự động kiểm tra và hoàn thành khóa học
@@ -40,7 +42,7 @@ const {
     // 3. So sánh
     if (completedLessonsCount === totalLessons) {
       // 4. Nếu bằng nhau -> Tạo CourseCompletion (nếu chưa có)
-      await coursecompletions.findOrCreate({
+      const [completion, created] = await coursecompletions.findOrCreate({
         where: {
           studentid: studentId,
           courseid: courseId,
@@ -52,7 +54,7 @@ const {
         },
         transaction,
       });
-  
+
       // 5. Tạo Certificate (nếu chưa có)
       await certificates.findOrCreate({
         where: {
@@ -66,6 +68,21 @@ const {
         },
         transaction,
       });
+
+      // 6. Tạo notification khi hoàn thành khóa học (chỉ khi mới hoàn thành)
+      if (created) {
+        try {
+          const course = await courses.findByPk(courseId, { transaction });
+          if (course) {
+            await notificationService.createNotification(
+              studentId,
+              `Chúc mừng! Bạn đã hoàn thành khóa học "${course.coursename}". Bạn đã nhận được chứng chỉ!`
+            );
+          }
+        } catch (error) {
+          console.error('Error creating course completion notification:', error);
+        }
+      }
     }
   };
   
@@ -138,10 +155,23 @@ const {
   
       // 4. ✨ GỌI HÀM KIỂM TRA HOÀN THÀNH KHÓA HỌC ✨
       await checkAndCompleteCourse(studentId, courseId, t);
-  
-      // 5. Commit transaction
+
+      // 5. Tạo notification khi hoàn thành bài học
+      try {
+        const lesson = await lessons.findByPk(lessonId, { transaction: t });
+        if (lesson) {
+          await notificationService.createNotification(
+            studentId,
+            `Bạn đã hoàn thành bài học "${lesson.title}". Tiếp tục phát huy nhé!`
+          );
+        }
+      } catch (error) {
+        console.error('Error creating lesson completion notification:', error);
+      }
+
+      // 6. Commit transaction
       await t.commit();
-  
+
       return progress;
     } catch (error) {
       // 6. Nếu có lỗi, rollback tất cả

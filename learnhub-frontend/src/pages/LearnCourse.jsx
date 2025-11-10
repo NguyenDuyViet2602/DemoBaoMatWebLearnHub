@@ -12,6 +12,7 @@ import {
   FaChevronDown,
 } from 'react-icons/fa';
 import QuizPlayer from '../components/QuizPlayer';
+import VideoPlayer from '../components/VideoPlayer';
 
 const LearnCourse = () => {
   const { courseId } = useParams();
@@ -210,41 +211,24 @@ const LearnCourse = () => {
           ) : selectedLesson ? (
             <>
               {/* Video Player */}
-              <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
-                <div className="relative">
-                  {selectedLesson.videourl ? (
-                    <div className="aspect-video w-full">
-                      <iframe
-                        src={selectedLesson.videourl}
-                        className="w-full h-full"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        title={selectedLesson.title}
-                      ></iframe>
-                    </div>
-                  ) : (
-                    <div className="aspect-video w-full bg-gray-900 flex items-center justify-center">
-                      <FaVideo className="text-6xl text-gray-600" />
-                    </div>
-                  )}
-
-                  {/* Video controls overlay */}
-                  <div className="absolute inset-x-0 bottom-0 bg-black/60 px-4 pb-3 pt-2 text-white">
-                    <div className="flex items-center gap-3">
-                      <button className="grid size-8 place-items-center rounded-full bg-white/90 text-gray-900">
-                        <FaPlay className="size-3" />
-                      </button>
-                      <div className="h-2 w-full rounded-full bg-white/30">
-                        <div className="h-full w-1/3 rounded-full bg-white" />
-                      </div>
-                      <span className="text-xs">12:00 / 59:00</span>
-                      <div className="ml-auto flex items-center gap-3 opacity-80">
-                        <span className="text-xs">HD</span>
-                        <span className="text-xs">1x</span>
-                      </div>
+              <div className="overflow-hidden rounded-2xl border bg-white shadow-sm p-2">
+                {selectedLesson.videourl ? (
+                  <VideoPlayer
+                    videoUrl={selectedLesson.videourl}
+                    title={selectedLesson.title}
+                    isYouTube={
+                      selectedLesson.videourl.includes('youtube.com') ||
+                      selectedLesson.videourl.includes('youtu.be')
+                    }
+                  />
+                ) : (
+                  <div className="aspect-video w-full bg-gray-900 flex items-center justify-center rounded-lg">
+                    <div className="text-center">
+                      <FaVideo className="text-6xl text-gray-600 mx-auto mb-2" />
+                      <p className="text-gray-400">Chưa có video cho bài học này</p>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Title + meta */}

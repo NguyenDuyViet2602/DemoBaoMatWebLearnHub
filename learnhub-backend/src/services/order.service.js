@@ -1,5 +1,7 @@
 const { sequelize, orders, orderdetails, cart, courses } = require('../models');
 const { validatePromotionCode } = require('./promotion.service');
+const enrollmentService = require('./enrollment.service');
+const notificationService = require('./notification.service');
 
 /**
  * Tạo một đơn hàng từ giỏ hàng của người dùng.
@@ -33,10 +35,10 @@ const createOrderFromCart = async (userId, promotionCode = null) => {
     const newOrder = await orders.create({
       userid: userId,
       totalamount: finalTotal, // Sử dụng tổng tiền cuối cùng
-      status: 'Completed',
+      status: 'Pending', // Đặt status là Pending khi tạo order, sẽ cập nhật thành Completed sau khi thanh toán
     }, { transaction: t });
 
-    // ... code tạo orderdetails và xóa cart giữ nguyên ...
+    // Tạo order details
     const orderDetailsData = cartItems.map(item => ({
         orderid: newOrder.orderid,
         courseid: item.courseid,
@@ -44,10 +46,8 @@ const createOrderFromCart = async (userId, promotionCode = null) => {
     }));
     await orderdetails.bulkCreate(orderDetailsData, { transaction: t });
 
-    await cart.destroy({
-      where: { userid: userId },
-      transaction: t,
-    });
+    // KHÔNG xóa cart ở đây vì order status là Pending
+    // Cart sẽ được xóa sau khi thanh toán thành công trong updateOrderStatus
     
     await t.commit();
     return newOrder;
@@ -100,8 +100,87 @@ const getOrderById = async (orderId, userId) => {
   return order;
 };
 
+/**
+ * Cập nhật trạng thái đơn hàng
+ * Nếu status là 'Completed', sẽ tạo enrollment cho tất cả khóa học trong order
+ */
+const updateOrderStatus = async (orderId, status) => {
+  const t = await sequelize.transaction();
+  try {
+    const order = await orders.findByPk(orderId, {
+      include: [{
+        model: orderdetails,
+        as: 'orderdetails',
+        include: [{
+          model: courses,
+          as: 'course'
+        }]
+      }],
+      transaction: t
+    });
+
+    if (!order) {
+      throw new Error('Không tìm thấy đơn hàng.');
+    }
+
+    // Cập nhật status
+    await order.update({ status }, { transaction: t });
+
+    // Nếu thanh toán thành công, tạo enrollment và xóa cart
+    if (status === 'Completed') {
+      // Xóa cart sau khi thanh toán thành công
+      await cart.destroy({
+        where: { userid: order.userid },
+        transaction: t
+      });
+      for (const detail of order.orderdetails) {
+        try {
+          // Kiểm tra xem đã enroll chưa
+          const { enrollments } = require('../models');
+          const existingEnrollment = await enrollments.findOne({
+            where: {
+              studentid: order.userid,
+              courseid: detail.courseid
+            },
+            transaction: t
+          });
+
+          if (!existingEnrollment) {
+            // Tạo enrollment (bỏ qua kiểm tra giá vì đã thanh toán)
+            await enrollmentService.createEnrollmentFromOrder(
+              order.userid,
+              detail.courseid,
+              t
+            );
+          }
+        } catch (error) {
+          console.error(`Error creating enrollment for course ${detail.courseid}:`, error);
+          // Tiếp tục với các khóa học khác
+        }
+      }
+
+      // Tạo notification cho user
+      try {
+        await notificationService.createNotification(
+          order.userid,
+          `Thanh toán đơn hàng #${orderId} thành công! Bạn có thể bắt đầu học ngay.`
+        );
+      } catch (error) {
+        console.error('Error creating payment success notification:', error);
+      }
+    }
+
+    await t.commit();
+    return order;
+  } catch (error) {
+    await t.rollback();
+    throw error;
+  }
+};
+
 module.exports = {
   createOrderFromCart,
   getOrdersByUserId,
-  getOrderById
+  getOrderById,
+  updateOrderStatus
 };

@@ -1,5 +1,7 @@
 // src/services/lesson.service.js
 const { lessons, chapters, courses, users } = require("../models");
+const cloudinary = require("../config/cloudinary.config");
+const { Readable } = require("stream");
 
 /**
  * Kiểm tra xem user có phải là chủ sở hữu khóa học hoặc Admin không
@@ -104,10 +106,97 @@ const deleteLesson = async (lessonId, user) => {
   return { message: "Xóa bài học thành công." };
 };
 
+/**
+ * Upload video lên Cloudinary (hỗ trợ file lớn)
+ * @param {Buffer} fileBuffer - Buffer của file video
+ * @param {string} folder - Thư mục trên Cloudinary (ví dụ: 'lessons')
+ * @returns {Promise<string>} - URL của video trên Cloudinary
+ */
+const uploadVideoToCloudinary = async (fileBuffer, folder = 'lessons') => {
+  return new Promise((resolve, reject) => {
+    // Sử dụng upload_large_stream cho file lớn (>100MB)
+    const fileSize = fileBuffer.length;
+    const isLargeFile = fileSize > 100 * 1024 * 1024; // > 100MB
+    
+    if (isLargeFile) {
+      // Upload file lớn với chunked upload
+      const uploadStream = cloudinary.uploader.upload_large_stream(
+        {
+          folder: folder,
+          resource_type: 'video',
+          chunk_size: 6000000, // 6MB chunks
+          eager: [], // Không cần transform ngay
+        },
+        (error, result) => {
+          if (error) {
+            console.error('Cloudinary upload error:', error);
+            reject(error);
+          } else {
+            resolve(result.secure_url);
+          }
+        }
+      );
+
+      // Chuyển buffer thành stream để upload
+      const stream = Readable.from(fileBuffer);
+      stream.pipe(uploadStream);
+    } else {
+      // Upload file nhỏ bình thường
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: folder,
+          resource_type: 'video',
+          chunk_size: 6000000, // 6MB chunks
+        },
+        (error, result) => {
+          if (error) {
+            console.error('Cloudinary upload error:', error);
+            reject(error);
+          } else {
+            resolve(result.secure_url);
+          }
+        }
+      );
+
+      // Chuyển buffer thành stream để upload
+      const stream = Readable.from(fileBuffer);
+      stream.pipe(uploadStream);
+    }
+  });
+};
+
+/**
+ * Upload video cho bài học và cập nhật database
+ * @param {number} lessonId - ID bài học
+ * @param {Buffer} fileBuffer - Buffer của file video
+ * @param {object} user - Người dùng thực hiện (từ middleware)
+ * @returns {Promise<object>} - Bài học đã được cập nhật
+ */
+const uploadLessonVideo = async (lessonId, fileBuffer, user) => {
+  // 1. Kiểm tra bài học tồn tại
+  const lesson = await lessons.findByPk(lessonId);
+  if (!lesson) {
+    throw new Error("Không tìm thấy bài học");
+  }
+
+  // 2. Kiểm tra quyền
+  await checkCourseOwnership(lesson.courseid, user);
+
+  // 3. Upload video mới lên Cloudinary
+  const videoUrl = await uploadVideoToCloudinary(fileBuffer, 'lessons');
+
+  // 4. Cập nhật videourl trong database
+  await lesson.update({ videourl: videoUrl });
+
+  // 5. Trả về bài học đã cập nhật
+  return lesson;
+};
+
 module.exports = {
   createLesson,
   getLessonsByChapterId,
   getLessonById,
   updateLesson,
   deleteLesson,
+  uploadLessonVideo,
 };

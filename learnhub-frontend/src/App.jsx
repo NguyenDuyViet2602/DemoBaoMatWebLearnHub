@@ -11,6 +11,10 @@ import Teacher from './pages/Teacher';
 import Admin from './pages/Admin';
 import MyCourses from './pages/MyCourses';
 import LearnCourse from './pages/LearnCourse';
+import Notifications from './pages/Notifications';
+import Cart from './pages/Cart';
+import Checkout from './pages/Checkout';
+import PaymentResult from './pages/PaymentResult';
 import withAuthorization from './hoc/withAuthorization';
 
 const ProtectedProfile = withAuthorization(['Student', 'Teacher', 'Admin'])(Profile);
@@ -18,6 +22,9 @@ const ProtectedTeacher = withAuthorization(['Teacher'])(Teacher);
 const ProtectedAdmin = withAuthorization(['Admin'])(Admin);
 const ProtectedMyCourses = withAuthorization(['Student', 'Teacher', 'Admin'])(MyCourses);
 const ProtectedLearnCourse = withAuthorization(['Student', 'Teacher', 'Admin'])(LearnCourse);
+const ProtectedNotifications = withAuthorization(['Student', 'Teacher', 'Admin'])(Notifications);
+const ProtectedCart = withAuthorization(['Student', 'Teacher', 'Admin'])(Cart);
+const ProtectedCheckout = withAuthorization(['Student', 'Teacher', 'Admin'])(Checkout);
 
 function App() {
   return (
@@ -34,7 +41,11 @@ function App() {
             <Route path="/admin" element={<ProtectedAdmin />} />
             <Route path="/my-courses" element={<ProtectedMyCourses />} />
             <Route path="/wishlist" element={<Navigate to="/my-courses?tab=wishlist" replace />} />
+            <Route path="/notifications" element={<ProtectedNotifications />} />
             <Route path="/learn/:courseId" element={<ProtectedLearnCourse />} />
+            <Route path="/cart" element={<ProtectedCart />} />
+            <Route path="/checkout" element={<ProtectedCheckout />} />
+            <Route path="/payment/result" element={<PaymentResult />} />
           </Routes>
         </div>
         <Footer />

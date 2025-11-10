@@ -58,6 +58,15 @@ router.use('/admin', adminRoutes);
 
 const teacherRoutes = require('./teacher.route');
 router.use('/teacher', teacherRoutes);
+
+const notificationRoutes = require('./notification.route');
+router.use('/notifications', notificationRoutes);
+
+const paymentRoutes = require('./payment.route');
+router.use('/payment', paymentRoutes);
+
+const userRoutes = require('./user.route');
+router.use('/', userRoutes); // User routes có /user và /users
 // ✨ ===================== ✨
 
 module.exports = router;

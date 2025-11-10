@@ -241,6 +241,9 @@ const MyCourses = ({ onRefresh }) => {
     imageurl: '',
   });
   const [categories, setCategories] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     fetchCourses();
@@ -285,10 +288,108 @@ const MyCourses = ({ onRefresh }) => {
     }
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Kiểm tra loại file
+      if (!file.type.startsWith('image/')) {
+        alert('Vui lòng chọn file ảnh!');
+        return;
+      }
+      // Kiểm tra kích thước (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File ảnh không được vượt quá 5MB!');
+        return;
+      }
+      setSelectedImage(file);
+      // Tạo preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
+      
+      // Nếu có ảnh mới được chọn, upload ảnh trước
+      if (selectedImage) {
+        setUploadingImage(true);
+        try {
+          // Nếu đang sửa, upload ảnh cho khóa học đó
+          if (editingCourse) {
+            const formDataImage = new FormData();
+            formDataImage.append('image', selectedImage);
+            const uploadResponse = await axios.post(
+              `http://localhost:8080/api/v1/courses/${editingCourse.courseid}/upload-image`,
+              formDataImage,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'multipart/form-data',
+                },
+              }
+            );
+            // Cập nhật imageurl từ response
+            formData.imageurl = uploadResponse.data.data.imageUrl;
+          } else {
+            // Nếu tạo mới, tạm thời tạo khóa học trước, sau đó upload ảnh
+            // Tạo khóa học trước
+            const createResponse = await axios.post(
+              'http://localhost:8080/api/v1/courses',
+              formData,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+            const newCourseId = createResponse.data.data.courseid;
+            
+            // Upload ảnh cho khóa học vừa tạo
+            const formDataImage = new FormData();
+            formDataImage.append('image', selectedImage);
+            await axios.post(
+              `http://localhost:8080/api/v1/courses/${newCourseId}/upload-image`,
+              formDataImage,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'multipart/form-data',
+                },
+              }
+            );
+            alert('Tạo khóa học thành công! Đang chờ admin duyệt.');
+            setShowModal(false);
+            setEditingCourse(null);
+            setSelectedImage(null);
+            setImagePreview(null);
+            setFormData({
+              coursename: '',
+              description: '',
+              price: 0,
+              categoryid: '',
+              level: '',
+              language: '',
+              duration: '',
+              imageurl: '',
+            });
+            fetchCourses();
+            if (onRefresh) onRefresh();
+            setUploadingImage(false);
+            return;
+          }
+        } catch (uploadError) {
+          setUploadingImage(false);
+          alert('Lỗi upload ảnh: ' + (uploadError.response?.data?.message || uploadError.message));
+          return;
+        }
+        setUploadingImage(false);
+      }
+
+      // Cập nhật hoặc tạo khóa học
       if (editingCourse) {
         await axios.put(
           `http://localhost:8080/api/v1/courses/${editingCourse.courseid}`,
@@ -304,8 +405,11 @@ const MyCourses = ({ onRefresh }) => {
         });
         alert('Tạo khóa học thành công! Đang chờ admin duyệt.');
       }
+      
       setShowModal(false);
       setEditingCourse(null);
+      setSelectedImage(null);
+      setImagePreview(null);
       setFormData({
         coursename: '',
         description: '',
@@ -319,6 +423,7 @@ const MyCourses = ({ onRefresh }) => {
       fetchCourses();
       if (onRefresh) onRefresh();
     } catch (error) {
+      setUploadingImage(false);
       alert('Lỗi: ' + (error.response?.data?.message || error.message));
     }
   };
@@ -335,6 +440,8 @@ const MyCourses = ({ onRefresh }) => {
       duration: course.duration || '',
       imageurl: course.imageurl || '',
     });
+    setSelectedImage(null);
+    setImagePreview(course.imageurl || null);
     setShowModal(true);
   };
 
@@ -384,6 +491,8 @@ const MyCourses = ({ onRefresh }) => {
               duration: '',
               imageurl: '',
             });
+            setSelectedImage(null);
+            setImagePreview(null);
             setShowModal(true);
           }}
           className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2 cursor-pointer"
@@ -600,14 +709,28 @@ const MyCourses = ({ onRefresh }) => {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">URL hình ảnh</label>
+                <label className="block text-sm font-medium mb-2">Hình ảnh khóa học</label>
                 <input
-                  type="text"
-                  value={formData.imageurl}
-                  onChange={(e) => setFormData({ ...formData, imageurl: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
-                  placeholder="https://..."
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 cursor-pointer"
                 />
+                {imagePreview && (
+                  <div className="mt-2">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-full h-48 object-cover rounded-lg border"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {selectedImage ? `File: ${selectedImage.name}` : 'Ảnh hiện tại'}
+                    </p>
+                  </div>
+                )}
+                {uploadingImage && (
+                  <p className="text-sm text-blue-600 mt-2">Đang upload ảnh...</p>
+                )}
               </div>
               <div className="flex gap-2 justify-end">
                 <button
@@ -1170,6 +1293,9 @@ const CourseContentManagement = () => {
   const [selectedLessonId, setSelectedLessonId] = useState(null);
   const [chapterForm, setChapterForm] = useState({ title: '', description: '', sortorder: 0 });
   const [lessonForm, setLessonForm] = useState({ title: '', content: '', videourl: '', sortorder: 0 });
+  const [videoUploadMethod, setVideoUploadMethod] = useState('youtube'); // 'youtube' hoặc 'upload'
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
   const [quizForm, setQuizForm] = useState({ title: '', timelimit: 30, maxattempts: 1, showanswersaftersubmission: false });
 
   useEffect(() => {
@@ -1347,26 +1473,90 @@ const CourseContentManagement = () => {
     }
   };
 
+  const handleVideoFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Kiểm tra loại file
+      if (!file.type.startsWith('video/')) {
+        alert('Vui lòng chọn file video!');
+        return;
+      }
+      // Kiểm tra kích thước (500MB)
+      if (file.size > 500 * 1024 * 1024) {
+        alert('File video không được vượt quá 500MB!');
+        return;
+      }
+      setSelectedVideo(file);
+    }
+  };
+
   const handleCreateLesson = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
-        'http://localhost:8080/api/v1/lessons',
-        {
-          chapterid: parseInt(selectedChapterId),
-          courseid: parseInt(selectedCourseId),
-          ...lessonForm,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
+      
+      // Nếu chọn upload file và có file được chọn
+      if (videoUploadMethod === 'upload' && selectedVideo) {
+        // Tạo bài học trước (không có videourl)
+        const createResponse = await axios.post(
+          'http://localhost:8080/api/v1/lessons',
+          {
+            chapterid: parseInt(selectedChapterId),
+            courseid: parseInt(selectedCourseId),
+            ...lessonForm,
+            videourl: '', // Tạm thời để trống
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const newLessonId = createResponse.data.data.lessonid;
+        
+        // Upload video cho bài học vừa tạo
+        setUploadingVideo(true);
+        try {
+          const formDataVideo = new FormData();
+          formDataVideo.append('video', selectedVideo);
+          await axios.post(
+            `http://localhost:8080/api/v1/lessons/${newLessonId}/upload-video`,
+            formDataVideo,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'multipart/form-data',
+              },
+            }
+          );
+          alert('Tạo bài học và upload video thành công!');
+        } catch (uploadError) {
+          setUploadingVideo(false);
+          alert('Tạo bài học thành công nhưng upload video thất bại: ' + (uploadError.response?.data?.message || uploadError.message));
         }
-      );
-      alert('Tạo bài học thành công!');
+        setUploadingVideo(false);
+      } else {
+        // Tạo bài học với YouTube link hoặc không có video
+        await axios.post(
+          'http://localhost:8080/api/v1/lessons',
+          {
+            chapterid: parseInt(selectedChapterId),
+            courseid: parseInt(selectedCourseId),
+            ...lessonForm,
+            videourl: videoUploadMethod === 'youtube' ? lessonForm.videourl : '',
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        alert('Tạo bài học thành công!');
+      }
+      
       setShowLessonModal(false);
       setSelectedChapterId(null);
+      setSelectedVideo(null);
+      setVideoUploadMethod('youtube');
       setLessonForm({ title: '', content: '', videourl: '', sortorder: 0 });
       fetchLessons(parseInt(selectedChapterId));
     } catch (error) {
+      setUploadingVideo(false);
       alert('Lỗi: ' + (error.response?.data?.message || error.message));
     }
   };
@@ -1374,9 +1564,41 @@ const CourseContentManagement = () => {
   const handleUpdateLesson = async () => {
     try {
       const token = localStorage.getItem('token');
+      
+      // Nếu chọn upload file và có file mới được chọn
+      if (videoUploadMethod === 'upload' && selectedVideo) {
+        setUploadingVideo(true);
+        try {
+          // Upload video trước
+          const formDataVideo = new FormData();
+          formDataVideo.append('video', selectedVideo);
+          const uploadResponse = await axios.post(
+            `http://localhost:8080/api/v1/lessons/${editingLesson.lessonid}/upload-video`,
+            formDataVideo,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'multipart/form-data',
+              },
+            }
+          );
+          // Cập nhật videourl từ response
+          lessonForm.videourl = uploadResponse.data.data.videoUrl;
+        } catch (uploadError) {
+          setUploadingVideo(false);
+          alert('Lỗi upload video: ' + (uploadError.response?.data?.message || uploadError.message));
+          return;
+        }
+        setUploadingVideo(false);
+      }
+      
+      // Cập nhật bài học
       await axios.put(
         `http://localhost:8080/api/v1/lessons/${editingLesson.lessonid}`,
-        lessonForm,
+        {
+          ...lessonForm,
+          videourl: videoUploadMethod === 'youtube' ? lessonForm.videourl : lessonForm.videourl,
+        },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -1384,9 +1606,12 @@ const CourseContentManagement = () => {
       alert('Cập nhật bài học thành công!');
       setShowLessonModal(false);
       setEditingLesson(null);
+      setSelectedVideo(null);
+      setVideoUploadMethod('youtube');
       setLessonForm({ title: '', content: '', videourl: '', sortorder: 0 });
       fetchLessons(editingLesson.chapterid);
     } catch (error) {
+      setUploadingVideo(false);
       alert('Lỗi: ' + (error.response?.data?.message || error.message));
     }
   };
@@ -1494,6 +1719,8 @@ const CourseContentManagement = () => {
                           onClick={() => {
                             setSelectedChapterId(chapter.chapterid);
                             setLessonForm({ title: '', content: '', videourl: '', sortorder: (lessons[chapter.chapterid]?.length || 0) + 1 });
+                            setVideoUploadMethod('youtube');
+                            setSelectedVideo(null);
                             setShowLessonModal(true);
                           }}
                           className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 flex items-center gap-1 cursor-pointer"
@@ -1558,17 +1785,21 @@ const CourseContentManagement = () => {
                                   >
                                     <FaQuestionCircle className="text-xs" /> Quiz ({quizzes[lesson.lessonid]?.length || 0})
                                   </button>
-                                  <button
-                                    onClick={() => {
-                                      setEditingLesson(lesson);
-                                      setLessonForm({
-                                        title: lesson.title,
-                                        content: lesson.content || '',
-                                        videourl: lesson.videourl || '',
-                                        sortorder: lesson.sortorder || 0,
-                                      });
-                                      setShowLessonModal(true);
-                                    }}
+                                    <button
+                                      onClick={() => {
+                                        setEditingLesson(lesson);
+                                        setLessonForm({
+                                          title: lesson.title,
+                                          content: lesson.content || '',
+                                          videourl: lesson.videourl || '',
+                                          sortorder: lesson.sortorder || 0,
+                                        });
+                                        // Xác định phương thức upload dựa vào videourl
+                                        const isYouTube = lesson.videourl && (lesson.videourl.includes('youtube.com') || lesson.videourl.includes('youtu.be'));
+                                        setVideoUploadMethod(isYouTube ? 'youtube' : (lesson.videourl ? 'upload' : 'youtube'));
+                                        setSelectedVideo(null);
+                                        setShowLessonModal(true);
+                                      }}
                                     className="px-2 py-1 text-xs text-blue-600 hover:text-blue-800 cursor-pointer"
                                   >
                                     <FaEdit />
@@ -1697,14 +1928,67 @@ const CourseContentManagement = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Video URL</label>
-                <input
-                  type="text"
-                  value={lessonForm.videourl}
-                  onChange={(e) => setLessonForm({ ...lessonForm, videourl: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
-                  placeholder="https://..."
-                />
+                <label className="block text-sm font-medium mb-2">Video bài giảng</label>
+                
+                {/* Radio buttons để chọn phương thức */}
+                <div className="flex gap-4 mb-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="videoMethod"
+                      value="youtube"
+                      checked={videoUploadMethod === 'youtube'}
+                      onChange={(e) => {
+                        setVideoUploadMethod(e.target.value);
+                        setSelectedVideo(null);
+                      }}
+                      className="cursor-pointer"
+                    />
+                    <span>YouTube Link</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="videoMethod"
+                      value="upload"
+                      checked={videoUploadMethod === 'upload'}
+                      onChange={(e) => {
+                        setVideoUploadMethod(e.target.value);
+                        setLessonForm({ ...lessonForm, videourl: '' });
+                      }}
+                      className="cursor-pointer"
+                    />
+                    <span>Upload từ máy tính</span>
+                  </label>
+                </div>
+
+                {/* Hiển thị input tương ứng với phương thức đã chọn */}
+                {videoUploadMethod === 'youtube' ? (
+                  <input
+                    type="text"
+                    value={lessonForm.videourl}
+                    onChange={(e) => setLessonForm({ ...lessonForm, videourl: e.target.value })}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+                    placeholder="https://www.youtube.com/watch?v=... hoặc https://youtu.be/..."
+                  />
+                ) : (
+                  <div>
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={handleVideoFileChange}
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                    />
+                    {selectedVideo && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Đã chọn: {selectedVideo.name} ({(selectedVideo.size / 1024 / 1024).toFixed(2)} MB)
+                      </p>
+                    )}
+                    {uploadingVideo && (
+                      <p className="text-sm text-blue-600 mt-2">Đang upload video... (có thể mất vài phút)</p>
+                    )}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Thứ tự</label>
@@ -1723,6 +2007,8 @@ const CourseContentManagement = () => {
                     setShowLessonModal(false);
                     setEditingLesson(null);
                     setSelectedChapterId(null);
+                    setSelectedVideo(null);
+                    setVideoUploadMethod('youtube');
                     setLessonForm({ title: '', content: '', videourl: '', sortorder: 0 });
                   }}
                   className="px-4 py-2 border rounded-lg hover:bg-gray-100 cursor-pointer"

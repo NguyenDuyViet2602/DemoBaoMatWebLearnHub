@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 const lessonController = require("../../controllers/lesson.controller");
 const authMiddleware = require("../../middlewares/auth.middleware");
+const uploadVideo = require("../../middlewares/upload-video.middleware");
 
 // Routes quản lý BÀI HỌC (Lesson)
 
@@ -15,6 +16,9 @@ router.use(authMiddleware);
 
 // Lấy chi tiết 1 bài học (sau này thêm kiểm tra ghi danh)
 router.get("/:id", lessonController.handleGetLessonById);
+
+// Upload video cho bài học
+router.post("/:id/upload-video", uploadVideo, lessonController.handleUploadLessonVideo);
 
 // Tạo bài học mới
 router.post("/", lessonController.handleCreateLesson);

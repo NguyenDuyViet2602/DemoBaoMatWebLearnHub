@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 const courseController = require("../../controllers/course.controller");
 const authMiddleware = require("../../middlewares/auth.middleware");
+const uploadImage = require("../../middlewares/upload.middleware");
 // Chúng ta sẽ dùng authMiddleware, controller sẽ tự kiểm tra role Teacher/Admin
 
 // === Các route CÔNG KHAI (Public) ===
@@ -25,6 +26,9 @@ router.use(authMiddleware);
 
 // GET /api/v1/courses/:id/learn - Lấy nội dung khóa học cho học viên (đặt trước /:id để tránh conflict)
 router.get("/:id/learn", courseController.handleGetCourseForLearning);
+
+// POST /api/v1/courses/:id/upload-image - Upload ảnh cho khóa học (Yêu cầu chủ sở hữu hoặc Admin)
+router.post("/:id/upload-image", uploadImage, courseController.handleUploadCourseImage);
 
 // POST /api/v1/courses - Tạo khóa học mới (Yêu cầu role Teacher/Admin)
 router.post("/", courseController.handleCreateCourse);
