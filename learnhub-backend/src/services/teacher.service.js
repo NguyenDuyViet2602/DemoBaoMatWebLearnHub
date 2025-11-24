@@ -272,7 +272,7 @@ const getMyStudents = async (teacherId, filters = {}) => {
 };
 
 /**
- * Lấy danh sách submissions cần chấm
+ * Lấy danh sách submissions cần chấm (bao gồm cả assignment submissions và quiz sessions)
  */
 const getPendingSubmissions = async (teacherId, filters = {}) => {
   const {
@@ -286,13 +286,14 @@ const getPendingSubmissions = async (teacherId, filters = {}) => {
 
   const offset = (page - 1) * limit;
 
-  const whereCondition = { grade: null };
+  // 1. Lấy assignment submissions chờ chấm
+  const assignmentWhereCondition = { grade: null };
   if (assignmentId) {
-    whereCondition.assignmentid = assignmentId;
+    assignmentWhereCondition.assignmentid = assignmentId;
   }
 
-  const { count, rows } = await submissions.findAndCountAll({
-    where: whereCondition,
+  const assignmentSubmissions = await submissions.findAll({
+    where: assignmentWhereCondition,
     include: [
       {
         model: assignments,
@@ -314,17 +315,107 @@ const getPendingSubmissions = async (teacherId, filters = {}) => {
         attributes: ['userid', 'fullname', 'email'],
       },
     ],
-    offset,
-    limit,
     order: [[sortBy, sortOrder]],
     distinct: true,
   });
 
+  // 2. Lấy quiz sessions đã nộp từ các quiz thuộc các lesson của các course mà teacher sở hữu
+  const quizWhereCondition = {
+    submittedat: { [Op.ne]: null }, // Đã nộp
+  };
+
+  const quizSessions = await quizsessions.findAll({
+    where: quizWhereCondition,
+    include: [
+      {
+        model: quizzes,
+        as: 'quiz',
+        include: [
+          {
+            model: lessons,
+            as: 'lesson',
+            include: [
+              {
+                model: courses,
+                as: 'course',
+                where: { teacherid: teacherId },
+                ...(courseId && { where: { teacherid: teacherId, courseid: courseId } }),
+                attributes: ['courseid', 'coursename'],
+              },
+            ],
+            attributes: ['lessonid', 'title'],
+          },
+        ],
+        attributes: ['quizid', 'title', 'lessonid'],
+      },
+      {
+        model: users,
+        as: 'student',
+        attributes: ['userid', 'fullname', 'email'],
+      },
+    ],
+    order: [[sortBy === 'submittedat' ? 'submittedat' : sortBy, sortOrder]],
+    distinct: true,
+  });
+
+  // 3. Format dữ liệu để thống nhất và tương thích với frontend
+  const formattedAssignmentSubmissions = assignmentSubmissions.map((sub) => ({
+    submissionid: sub.submissionid,
+    type: 'assignment',
+    student: sub.student,
+    assignment: {
+      ...sub.assignment?.toJSON(),
+      course: sub.assignment?.course,
+    },
+    submittedat: sub.submittedat,
+    grade: sub.grade,
+    feedback: sub.feedback,
+    fileurl: sub.fileurl,
+  }));
+
+  // Lọc và format quiz sessions (chỉ lấy những session có course hợp lệ)
+  const formattedQuizSessions = quizSessions
+    .filter((session) => session.quiz?.lesson?.course) // Chỉ lấy quiz có course hợp lệ
+    .map((session) => ({
+      submissionid: session.sessionid, // Dùng sessionid làm id để tương thích
+      type: 'quiz',
+      student: session.student,
+      assignment: {
+        assignmentid: null,
+        title: session.quiz?.title,
+        duedate: null, // Quiz không có duedate
+        course: session.quiz?.lesson?.course,
+      },
+      quiz: {
+        quizid: session.quizid,
+        title: session.quiz?.title,
+      },
+      submittedat: session.submittedat,
+      grade: session.score, // Quiz có score tự động (đã được chấm)
+      feedback: null,
+      fileurl: null,
+      sessionid: session.sessionid,
+    }));
+
+  // 4. Kết hợp và sắp xếp lại
+  const allSubmissions = [...formattedAssignmentSubmissions, ...formattedQuizSessions];
+  
+  // Sắp xếp theo submittedat
+  allSubmissions.sort((a, b) => {
+    const dateA = new Date(a.submittedat);
+    const dateB = new Date(b.submittedat);
+    return sortOrder === 'DESC' ? dateB - dateA : dateA - dateB;
+  });
+
+  // 5. Phân trang
+  const totalItems = allSubmissions.length;
+  const paginatedSubmissions = allSubmissions.slice(offset, offset + limit);
+
   return {
-    totalItems: count,
-    totalPages: Math.ceil(count / limit),
+    totalItems,
+    totalPages: Math.ceil(totalItems / limit),
     currentPage: page,
-    submissions: rows,
+    submissions: paginatedSubmissions,
   };
 };
 

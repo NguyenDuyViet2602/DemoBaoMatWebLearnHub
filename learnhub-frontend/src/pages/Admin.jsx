@@ -1,6 +1,7 @@
 // src/pages/Admin.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import {
   FaHome,
   FaUsers,
@@ -11,11 +12,13 @@ import {
   FaStar,
   FaBars,
   FaTimes,
+  FaShieldAlt,
 } from 'react-icons/fa';
 import { useToast } from '../contexts/ToastContext';
 import { useConfirm } from '../contexts/ConfirmContext';
 
 const Admin = () => {
+  const navigate = useNavigate();
   const toast = useToast();
   const { confirm } = useConfirm();
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -108,6 +111,14 @@ const Admin = () => {
                 </button>
               );
             })}
+            {/* Pentest Demo Link */}
+            <button
+              onClick={() => navigate('/pentest')}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors cursor-pointer text-red-600 hover:bg-red-50 border-t border-gray-200 mt-4"
+            >
+              <FaShieldAlt className="text-lg" />
+              <span>Pentest Demo</span>
+            </button>
           </nav>
         </div>
       </div>

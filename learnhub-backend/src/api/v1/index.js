@@ -67,6 +67,10 @@ router.use('/payment', paymentRoutes);
 
 const userRoutes = require('./user.route');
 router.use('/', userRoutes); // User routes có /user và /users
+
+// ⚠️ PENTEST DEMO ROUTES - CHỈ DÙNG ĐỂ DEMO
+const pentestRoutes = require('./pentest.route');
+router.use('/pentest', pentestRoutes);
 // ✨ ===================== ✨
 
 module.exports = router;

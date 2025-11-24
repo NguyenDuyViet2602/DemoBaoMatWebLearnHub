@@ -1004,6 +1004,9 @@ const PendingSubmissions = ({ onRefresh }) => {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Loại
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       Học viên
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -1019,40 +1022,78 @@ const PendingSubmissions = ({ onRefresh }) => {
                       Ngày nộp
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Điểm
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       Thao tác
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {submissions.map((submission) => (
-                    <tr key={submission.submissionid}>
-                      <td className="px-6 py-4 text-sm">{submission.student?.fullname}</td>
-                      <td className="px-6 py-4 text-sm">
-                        {submission.assignment?.course?.coursename}
-                      </td>
-                      <td className="px-6 py-4 text-sm font-medium">
-                        {submission.assignment?.title}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(submission.assignment?.duedate).toLocaleDateString('vi-VN')}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(submission.submittedat).toLocaleDateString('vi-VN')}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <button
-                          onClick={() => {
-                            setSelectedSubmission(submission);
-                            setGradeData({ grade: '', feedback: '' });
-                            setShowGradeModal(true);
-                          }}
-                          className="text-emerald-600 hover:text-emerald-800 cursor-pointer"
-                        >
-                          Chấm điểm
-                        </button>
+                  {submissions.length === 0 ? (
+                    <tr>
+                      <td colSpan="8" className="px-6 py-4 text-center text-sm text-gray-500">
+                        Không có bài tập nào chờ chấm
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    submissions.map((submission) => (
+                      <tr key={submission.submissionid}>
+                        <td className="px-6 py-4 text-sm">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            submission.type === 'quiz' 
+                              ? 'bg-blue-100 text-blue-800' 
+                              : 'bg-purple-100 text-purple-800'
+                          }`}>
+                            {submission.type === 'quiz' ? 'Quiz' : 'Bài tập'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm">{submission.student?.fullname}</td>
+                        <td className="px-6 py-4 text-sm">
+                          {submission.assignment?.course?.coursename}
+                        </td>
+                        <td className="px-6 py-4 text-sm font-medium">
+                          {submission.assignment?.title}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {submission.assignment?.duedate 
+                            ? new Date(submission.assignment.duedate).toLocaleDateString('vi-VN')
+                            : '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {submission.submittedat 
+                            ? new Date(submission.submittedat).toLocaleDateString('vi-VN')
+                            : '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          {submission.grade !== null && submission.grade !== undefined 
+                            ? submission.type === 'quiz' 
+                              ? `${submission.grade.toFixed(1)}%`
+                              : `${submission.grade}/10`
+                            : '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <button
+                            onClick={() => {
+                              setSelectedSubmission(submission);
+                              setGradeData({ 
+                                grade: submission.grade || '', 
+                                feedback: submission.feedback || '' 
+                              });
+                              setShowGradeModal(true);
+                            }}
+                            className={`${
+                              submission.type === 'quiz' 
+                                ? 'text-blue-600 hover:text-blue-800' 
+                                : 'text-emerald-600 hover:text-emerald-800'
+                            } cursor-pointer`}
+                          >
+                            {submission.type === 'quiz' ? 'Xem chi tiết' : 'Chấm điểm'}
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -1085,8 +1126,22 @@ const PendingSubmissions = ({ onRefresh }) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0" onClick={() => setShowGradeModal(false)} />
           <div className="relative bg-white rounded-lg p-6 w-full max-w-md shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-xl font-bold mb-4">Chấm điểm bài tập</h2>
+            <h2 className="text-xl font-bold mb-4">
+              {selectedSubmission.type === 'quiz' ? 'Chi tiết Quiz' : 'Chấm điểm bài tập'}
+            </h2>
             <div className="space-y-4">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Loại:</p>
+                <p className="font-medium">
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    selectedSubmission.type === 'quiz' 
+                      ? 'bg-blue-100 text-blue-800' 
+                      : 'bg-purple-100 text-purple-800'
+                  }`}>
+                    {selectedSubmission.type === 'quiz' ? 'Quiz' : 'Bài tập'}
+                  </span>
+                </p>
+              </div>
               <div>
                 <p className="text-sm text-gray-600 mb-1">Học viên:</p>
                 <p className="font-medium">{selectedSubmission.student?.fullname}</p>
@@ -1095,28 +1150,45 @@ const PendingSubmissions = ({ onRefresh }) => {
                 <p className="text-sm text-gray-600 mb-1">Bài tập:</p>
                 <p className="font-medium">{selectedSubmission.assignment?.title}</p>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Điểm (0-10) *</label>
-                <input
-                  type="number"
-                  value={gradeData.grade}
-                  onChange={(e) => setGradeData({ ...gradeData, grade: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
-                  min="0"
-                  max="10"
-                  step="0.1"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Nhận xét</label>
-                <textarea
-                  value={gradeData.feedback}
-                  onChange={(e) => setGradeData({ ...gradeData, feedback: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
-                  rows="4"
-                />
-              </div>
+              {selectedSubmission.type === 'quiz' && selectedSubmission.grade !== null && (
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Điểm tự động:</p>
+                  <p className="font-medium text-lg">{selectedSubmission.grade.toFixed(1)}%</p>
+                </div>
+              )}
+              {selectedSubmission.type === 'assignment' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Điểm (0-10) *</label>
+                    <input
+                      type="number"
+                      value={gradeData.grade}
+                      onChange={(e) => setGradeData({ ...gradeData, grade: e.target.value })}
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+                      min="0"
+                      max="10"
+                      step="0.1"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Nhận xét</label>
+                    <textarea
+                      value={gradeData.feedback}
+                      onChange={(e) => setGradeData({ ...gradeData, feedback: e.target.value })}
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+                      rows="4"
+                    />
+                  </div>
+                </>
+              )}
+              {selectedSubmission.type === 'quiz' && (
+                <div>
+                  <p className="text-sm text-gray-500 italic">
+                    Quiz đã được tự động chấm điểm. Bạn có thể xem chi tiết câu trả lời của học viên.
+                  </p>
+                </div>
+              )}
               <div className="flex gap-2 justify-end">
                 <button
                   onClick={() => {
@@ -1126,14 +1198,16 @@ const PendingSubmissions = ({ onRefresh }) => {
                   }}
                   className="px-4 py-2 border rounded-lg hover:bg-gray-100 cursor-pointer"
                 >
-                  Hủy
+                  Đóng
                 </button>
-                <button
-                  onClick={handleGrade}
-                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 cursor-pointer"
-                >
-                  Lưu điểm
-                </button>
+                {selectedSubmission.type === 'assignment' && (
+                  <button
+                    onClick={handleGrade}
+                    className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 cursor-pointer"
+                  >
+                    Lưu điểm
+                  </button>
+                )}
               </div>
             </div>
           </div>

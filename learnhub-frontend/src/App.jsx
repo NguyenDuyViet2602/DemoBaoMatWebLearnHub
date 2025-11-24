@@ -18,6 +18,7 @@ import PaymentResult from './pages/PaymentResult';
 import BecomeInstructor from './pages/BecomeInstructor';
 import InstructorApplication from './pages/InstructorApplication';
 import PendingApplication from './pages/PendingApplication';
+import PentestDemo from './pages/PentestDemo';
 import withAuthorization from './hoc/withAuthorization';
 
 const ProtectedProfile = withAuthorization(['Student', 'Teacher', 'Admin'])(Profile);
@@ -53,6 +54,7 @@ function App() {
             <Route path="/teacher-requests" element={<BecomeInstructor />} />
             <Route path="/apply" element={<InstructorApplication />} />
             <Route path="/pending-application" element={<PendingApplication />} />
+            <Route path="/pentest" element={<PentestDemo />} />
           </Routes>
         </div>
         <Footer />
