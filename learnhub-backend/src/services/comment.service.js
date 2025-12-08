@@ -32,9 +32,13 @@ const checkEnrollment = async (studentId, lessonId) => {
  * @param {number} lessonId
  * @param {string} content
  */
-const createComment = async (studentId, lessonId, content) => {
-  // 1. Kiểm tra quyền ghi danh
-  await checkEnrollment(studentId, lessonId);
+const createComment = async (studentId, lessonId, content, options = {}) => {
+  const mode = options.mode || 'secure';
+
+  // 1. Kiểm tra quyền ghi danh (bỏ qua khi ở chế độ vuln để demo)
+  if (mode !== 'vuln') {
+    await checkEnrollment(studentId, lessonId);
+  }
 
   // 2. Tạo bình luận
   const newComment = await lessoncomments.create({
@@ -50,7 +54,9 @@ const createComment = async (studentId, lessonId, content) => {
  * Lấy tất cả bình luận của một bài học
  * @param {number} lessonId
  */
-const getCommentsByLessonId = async (lessonId) => {
+const getCommentsByLessonId = async (lessonId, options = {}) => {
+  const mode = options.mode || 'secure';
+
   return await lessoncomments.findAll({
     where: { lessonid: lessonId },
     include: [

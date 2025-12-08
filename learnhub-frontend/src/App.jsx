@@ -1,5 +1,5 @@
 // src/App.jsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -20,6 +20,7 @@ import InstructorApplication from './pages/InstructorApplication';
 import PendingApplication from './pages/PendingApplication';
 import PentestDemo from './pages/PentestDemo';
 import withAuthorization from './hoc/withAuthorization';
+import { applyPentestMode, getPentestMode, togglePentestMode } from './utils/pentestMode';
 
 const ProtectedProfile = withAuthorization(['Student', 'Teacher', 'Admin'])(Profile);
 const ProtectedTeacher = withAuthorization(['Teacher'])(Teacher);
@@ -31,9 +32,32 @@ const ProtectedCart = withAuthorization(['Student', 'Teacher', 'Admin'])(Cart);
 const ProtectedCheckout = withAuthorization(['Student', 'Teacher', 'Admin'])(Checkout);
 
 function App() {
+  const [pentestMode, setPentestModeState] = useState(getPentestMode());
+
+  // Apply header on mount and when mode changes
+  useEffect(() => {
+    applyPentestMode(pentestMode);
+  }, [pentestMode]);
+
+  // Hotkey: Ctrl + / to toggle vulnerable/secure
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+        e.preventDefault();
+        const next = togglePentestMode();
+        setPentestModeState(next);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
   return (
     <Router>
       <div className="flex flex-col min-h-screen">
+        <div className="fixed z-50 bottom-4 right-4 rounded-full px-4 py-2 shadow bg-white border text-sm font-semibold">
+          Pentest mode: <span className={pentestMode === 'vuln' ? 'text-red-600' : 'text-emerald-600'}>{pentestMode}</span> (Ctrl + / to toggle)
+        </div>
         <Header />
         <div className="flex-grow pt-16">
           <Routes>

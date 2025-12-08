@@ -6,7 +6,7 @@ const handleGetAllCourses = async (req, res, next) => {
   try {
     // req.query chứa các tham số lọc như ?page=1&limit=10&categoryId=2
     const filters = req.query;
-    const data = await courseService.getAllCourses(filters);
+    const data = await courseService.getAllCourses(filters, { mode: req.pentestMode });
     res.status(200).json({
       message: "Lấy danh sách khóa học thành công",
       data,
@@ -110,7 +110,7 @@ const handleGetCoursesByCategory = async (req, res, next) => {
   try {
     const { categoryId } = req.params;
     const filters = { categoryId };
-    const data = await courseService.getAllCourses(filters);
+    const data = await courseService.getAllCourses(filters, { mode: req.pentestMode });
     res.status(200).json({
       message: "Lấy danh sách khóa học theo danh mục thành công",
       data,

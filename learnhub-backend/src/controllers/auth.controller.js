@@ -11,7 +11,7 @@ exports.login = async (req, res, next) => {
         }
 
         // Gọi service
-        const result = await authService.loginService(email, password);
+        const result = await authService.loginService(email, password, { mode: req.pentestMode });
 
         res.status(200).json({
             message: 'Đăng nhập thành công',

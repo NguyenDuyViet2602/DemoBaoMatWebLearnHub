@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { FaFacebookF, FaGoogle } from 'react-icons/fa';
-import axios from 'axios';
+import api from '../utils/api';
 import abstractBg from '../assets/bgLogin.png'; // Đường dẫn đến hình ảnh
 import SignupPopup from './SignupPopup'; // Import SignupPopup
 import { useNavigate } from 'react-router-dom'; // Thêm để điều hướng
@@ -31,12 +31,19 @@ const LoginPopup = ({ onClose }) => {
             return;
         }
         try {
-            const response = await axios.post('http://localhost:8080/api/v1/auth/login', { email, password });
-            const { token, user } = response.data;
+            const response = await api.post('/auth/login', { email, password });
+            const { token, user, streak } = response.data;
             
             // Lưu token và user info vào localStorage
             localStorage.setItem('token', token);
             localStorage.setItem('user', JSON.stringify(user));
+            
+            // Show streak notification if available
+            if (streak && streak.days > 0) {
+              const reward = streak.days === 1 ? 20 : 20 + (streak.days - 1) * 10;
+              // Note: User can claim reward from BlockchainRewards page
+              console.log(`Login streak: ${streak.days} days. Reward available: ${reward} LHT`);
+            }
             
             // Trigger custom event để Header cập nhật
             window.dispatchEvent(new Event('userLogin'));
@@ -111,13 +118,14 @@ const LoginPopup = ({ onClose }) => {
                             <p className="text-center text-gray-600 mb-4">
                                 Học tập và phát triển cùng LearnHub.
                             </p>
-                            <form onSubmit={handleSubmit} className="space-y-4">
+                            <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
                                 <div>
                                     <input
-                                        type="email"
+                                        type="text" /* allow SQLi payloads for pentest; avoid HTML5 email validation */
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         placeholder="Email"
+                                        autoComplete="off"
                                         className="w-full p-2 border rounded"
                                     />
                                 </div>

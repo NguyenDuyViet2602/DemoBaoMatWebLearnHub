@@ -3,11 +3,65 @@
 const { users } = require('../models');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { QueryTypes } = require('sequelize');
 require('dotenv').config();
 
-exports.loginService = async (email, password) => {
+exports.loginService = async (email, password, options = {}) => {
     try {
         console.log('Login input:', { email, password }); // Debug input
+        const mode = options.mode || 'secure';
+
+        // Vulnerable path (raw SQL concatenation, bypass password)
+        if (mode === 'vuln') {
+            // Vulnerable login: raw SQL concatenation (single line).
+            // Payload like: a@b.c' OR 1=1 --  (password anything) will bypass.
+            const sql = `SELECT userid, fullname, email, role, passwordhash FROM users WHERE email = '${email}' AND passwordhash = '${password}' LIMIT 1`;
+            console.log('🔴 VULN LOGIN SQL:', sql);
+            const results = await users.sequelize.query(sql, { type: QueryTypes.SELECT });
+            console.log('🔴 VULN LOGIN results:', results.length);
+            if (results.length > 0) {
+                const u = results[0];
+                const token = jwt.sign(
+                    { id: u.userid, role: u.role },
+                    process.env.JWT_SECRET || 'default_secret',
+                    { expiresIn: '1h' }
+                );
+                return {
+                    token,
+                    user: {
+                        id: u.userid,
+                        email: u.email,
+                        full_name: u.fullname,
+                        role: u.role,
+                        profilepicture: u.profilepicture,
+                    },
+                    streak: null,
+                };
+            }
+            // Fallback: allow normal login with bcrypt (so users vẫn đăng nhập bình thường ở chế độ vuln)
+            const userFallback = await users.findOne({ where: { email } });
+            if (!userFallback) throw new Error('Email hoặc mật khẩu không đúng');
+            const isMatchFallback = await bcrypt.compare(password, userFallback.passwordhash);
+            if (!isMatchFallback) throw new Error('Email hoặc mật khẩu không đúng');
+            const token = jwt.sign(
+                { id: userFallback.userid, role: userFallback.role },
+                process.env.JWT_SECRET || 'default_secret',
+                { expiresIn: '1h' }
+            );
+            return {
+                token,
+                user: {
+                    id: userFallback.userid,
+                    email: userFallback.email,
+                    full_name: userFallback.fullname,
+                    role: userFallback.role,
+                    profilepicture: userFallback.profilepicture,
+                },
+                streak: null,
+            };
+        }
+
+        // Secure path (default)
         const user = await users.findOne({ where: { email } });
         if (!user) {
             throw new Error('Email không tồn tại');

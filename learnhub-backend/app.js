@@ -36,11 +36,14 @@ const cors = require("cors");
 const app = express();
 require("dotenv").config();
 const { sequelize } = require("./src/models"); // Import sequelize instance
+const pentestMode = require("./src/middleware/pentestMode");
 
 app.use(cors());
 
 // Middleware để parse JSON body
 app.use(express.json());
+// Pentest mode toggle (vuln|secure) via header X-Pentest-Mode, default secure
+app.use(pentestMode);
 
 // Routes
 app.use("/api/v1", require("./src/api/v1"));

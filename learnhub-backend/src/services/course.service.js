@@ -8,7 +8,7 @@ const { Readable } = require("stream");
  * Lấy danh sách tất cả khóa học với tùy chọn lọc và phân trang
  * @param {object} filters - Tùy chọn lọc (ví dụ: page, limit, categoryId, search)
  */
-const getAllCourses = async (filters = {}) => {
+const getAllCourses = async (filters = {}, options = {}) => {
   const {
     page = 1,
     limit = 10,
@@ -17,6 +17,7 @@ const getAllCourses = async (filters = {}) => {
     sortBy = "createdat",
     sortOrder = "DESC",
   } = filters;
+  const mode = options.mode || "secure";
 
   const offset = (page - 1) * limit;
 
@@ -32,7 +33,28 @@ const getAllCourses = async (filters = {}) => {
     ];
   }
 
-  // Truy vấn CSDL
+  // Vulnerable path (raw SQL concatenation) - only for demo
+  if (mode === "vuln") {
+    const searchValue = search || "";
+    const sql = `
+      SELECT courseid, coursename, description, price, imageurl, teacherid, categoryid
+      FROM courses
+      ${searchValue ? `WHERE coursename ILIKE '%${searchValue}%' OR description ILIKE '%${searchValue}%'` : ""}
+      ORDER BY ${sortBy} ${sortOrder}
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+    const results = await courses.sequelize.query(sql, {
+      type: courses.sequelize.QueryTypes.SELECT,
+    });
+    return {
+      totalItems: results.length,
+      totalPages: Math.ceil(results.length / limit),
+      currentPage: page,
+      courses: results,
+    };
+  }
+
+  // Truy vấn CSDL (secure)
   const { count, rows } = await courses.findAndCountAll({
     where: whereCondition,
     include: [

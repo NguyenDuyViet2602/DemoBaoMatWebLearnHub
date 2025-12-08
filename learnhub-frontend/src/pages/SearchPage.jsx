@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import CourseCard from '../components/site/CourseCard';
+import { getPentestMode } from '../utils/pentestMode';
 
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -22,6 +23,7 @@ export default function SearchPage() {
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [searchInput, setSearchInput] = useState(searchQuery);
+  const pentestMode = getPentestMode();
 
   // Sync searchInput với URL params khi chúng thay đổi
   useEffect(() => {
@@ -32,7 +34,7 @@ export default function SearchPage() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await axios.get('http://localhost:8080/api/v1/categories');
+        const res = await axios.get('/api/v1/categories');
         const list = res.data?.data?.categories || res.data?.data || [];
         setCategories(list);
       } catch (e) {
@@ -61,7 +63,7 @@ export default function SearchPage() {
           params.categoryId = categoryId;
         }
 
-        const res = await axios.get('http://localhost:8080/api/v1/courses', { params });
+        const res = await axios.get('/api/v1/courses', { params });
         const data = res.data?.data || {};
         
         const mapped = (data.courses || []).map((c) => ({
@@ -168,7 +170,24 @@ export default function SearchPage() {
           {/* Active filters */}
           {(searchQuery || categoryId) && (
             <div className="mt-4 flex flex-wrap items-center gap-2 max-w-3xl mx-auto">
-              {searchQuery && (
+              {searchQuery && pentestMode === 'vuln' ? (
+                <span className="inline-flex items-center gap-2 rounded-full bg-red-100 px-4 py-2 text-sm font-medium text-red-700">
+                  <span
+                    dangerouslySetInnerHTML={{ __html: `Từ khóa: ${searchQuery}` }}
+                  />
+                  <button
+                    onClick={() => {
+                      const newParams = new URLSearchParams(searchParams);
+                      newParams.delete('q');
+                      setSearchParams(newParams);
+                      setSearchInput('');
+                    }}
+                    className="hover:text-red-900 cursor-pointer"
+                  >
+                    ×
+                  </button>
+                </span>
+              ) : searchQuery ? (
                 <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-4 py-2 text-sm font-medium text-emerald-700">
                   Từ khóa: {searchQuery}
                   <button
@@ -183,7 +202,7 @@ export default function SearchPage() {
                     ×
                   </button>
                 </span>
-              )}
+              ) : null}
               {categoryId && categoryName && (
                 <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-4 py-2 text-sm font-medium text-emerald-700">
                   Danh mục: {categoryName}

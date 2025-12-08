@@ -16,7 +16,8 @@ const handleCreateComment = async (req, res, next) => {
     const newComment = await commentService.createComment(
       studentId,
       Number(lessonId),
-      content
+      content,
+      { mode: req.pentestMode }
     );
     res
       .status(201)
@@ -33,7 +34,7 @@ const handleCreateComment = async (req, res, next) => {
 const handleGetCommentsByLessonId = async (req, res, next) => {
   try {
     const { lessonId } = req.params;
-    const comments = await commentService.getCommentsByLessonId(Number(lessonId));
+    const comments = await commentService.getCommentsByLessonId(Number(lessonId), { mode: req.pentestMode });
     res
       .status(200)
       .json({ message: 'Lấy danh sách bình luận thành công.', data: comments });
