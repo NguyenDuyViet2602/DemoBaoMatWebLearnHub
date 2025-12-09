@@ -44,6 +44,10 @@ test/
 !**/public/**/*.png
 !**/public/**/*.jpg
 !**/public/**/*.jpeg
+# Allow demo screenshots
+!hình ảnh bảo mật/**/*.png
+!hình ảnh bảo mật/**/*.jpg
+!hình ảnh bảo mật/**/*.jpeg
 
 # Temporary files
 *.tmp
